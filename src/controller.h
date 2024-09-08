@@ -290,9 +290,12 @@ struct PixelController {
         int mLenRemaining;       ///< counter for the number of LEDs left to process
         uint8_t d[3];            ///< values for the scaled dither signal @see init_binary_dithering()
         uint8_t e[3];            ///< values for the scaled dither signal @see init_binary_dithering()
-        CRGB mScale;             ///< the per-channel scale values, provided by a color correction function such as CLEDController::computeAdjustment()
+        CRGB mScale;             ///< the per-channel scale values, provided by a color correction function such as CLEDController::computeAdjustment(), mixed in with global brightness.
         int8_t mAdvance;         ///< how many bytes to advance the pointer by each time. For CRGB this is 3.
         int mOffsets[LANES];     ///< the number of bytes to offset each lane from the starting pointer @see initOffsets()
+        // Work in progress, seperate global brightness from mixed in scale.
+        CRGB mComponentScale = default;    ///< the per-channel scale values, not mixed with global brightness.
+        uint8_t mBrightness = default;     ///< the global brightness value for this pixel.
 
         /// Copy constructor
         /// @param other the object to copy 
@@ -305,6 +308,8 @@ struct PixelController {
             e[2] = other.e[2];
             mData = other.mData;
             mScale = other.mScale;
+            mComponentScale = other.mComponentScale;
+            mBrightness = other.mBrightness;
             mAdvance = other.mAdvance;
             mLenRemaining = mLen = other.mLen;
             for(int i = 0; i < LANES; ++i) { mOffsets[i] = other.mOffsets[i]; }
@@ -329,7 +334,7 @@ struct PixelController {
         /// @param skip if the pointer is advancing, how many bytes to skip in addition to 3
         PixelController(
                 const uint8_t *d, int len, CRGB & s,
-                EDitherMode dither = BINARY_DITHER, bool advance=true, uint8_t skip=0)
+                EDitherMode dither, bool advance, uint8_t skip)
                     : mData(d), mLen(len), mLenRemaining(len), mScale(s) {
             enable_dithering(dither);
             mData += skip;
@@ -344,7 +349,7 @@ struct PixelController {
         /// @param dither dither setting for the LEDs
         PixelController(
                 const CRGB *d, int len, CRGB & s,
-                EDitherMode dither = BINARY_DITHER)
+                EDitherMode dither)
                     : mData((const uint8_t*)d), mLen(len), mLenRemaining(len), mScale(s) {
             enable_dithering(dither);
             mAdvance = 3;
@@ -357,7 +362,7 @@ struct PixelController {
         /// @param s LED scale values, as CRGB struct
         /// @param dither dither setting for the LEDs
         PixelController(
-                const CRGB &d, int len, CRGB & s, EDitherMode dither = BINARY_DITHER)
+                const CRGB &d, int len, CRGB & s, EDitherMode dither)
                     : mData((const uint8_t*)&d), mLen(len), mLenRemaining(len), mScale(s) {
             enable_dithering(dither);
             mAdvance = 0;
@@ -447,7 +452,7 @@ struct PixelController {
 
             // Setup the initial D and E values
             for(int i = 0; i < 3; ++i) {
-                    uint8_t s = mScale.raw[i];
+                    uint8_t s = mScaleMixed.raw[i];
                     e[i] = s ? (256/s) + 1 : 0;
                     d[i] = scale8(Q, e[i]);
 #if (FASTLED_SCALE8_FIXED == 1)
@@ -537,8 +542,8 @@ struct PixelController {
         /// @tparam SLOT The data slot in the output stream. This is used to select which byte of the output stream is being processed.
         /// @param pc reference to the pixel controller
         /// @param b the color byte to scale
-        /// @see PixelController::mScale
-        template<int SLOT>  FASTLED_FORCE_INLINE static uint8_t scale(PixelController & pc, uint8_t b) { return scale8(b, pc.mScale.raw[RO(SLOT)]); }
+        /// @see PixelController::mScaleMixed
+        template<int SLOT>  FASTLED_FORCE_INLINE static uint8_t scale(PixelController & pc, uint8_t b) { return scale8(b, pc.mScaleMixed.raw[RO(SLOT)]); }
         /// Scale a value
         /// @tparam SLOT The data slot in the output stream. This is used to select which byte of the output stream is being processed.
         /// @param b the byte to scale
@@ -613,8 +618,8 @@ struct PixelController {
         /// @tparam SLOT The data slot in the output stream. This is used to select which byte of the output stream is being processed.
         /// @param pc reference to the pixel controller
         /// @returns scale data for the given channel
-        /// @see PixelController::mScale
-        template<int SLOT>  FASTLED_FORCE_INLINE static uint8_t getscale(PixelController & pc) { return pc.mScale.raw[RO(SLOT)]; }
+        /// @see PixelController::mScaleMixed
+        template<int SLOT>  FASTLED_FORCE_INLINE static uint8_t getscale(PixelController & pc) { return pc.mScaleMixed.raw[RO(SLOT)]; }
 
         /// @} Data retrieval functions
 
@@ -665,7 +670,7 @@ struct PixelController {
                 rgbw_mode,
                 white_color_temp,
                 rgb.r, rgb.b, rgb.g,
-                mScale.r, mScale.g, mScale.b,
+                mScaleMixed.r, mScaleMixed.g, mScaleMixed.b,
                 &rgb.r, &rgb.g, &rgb.b, &w
             );
             const uint8_t b0_index = RGB_BYTE0(RGB_ORDER);
@@ -689,7 +694,7 @@ struct PixelController {
             rgb_2_rgbw<MODE>(
                 white_color_temp,
                 rgb.r, rgb.b, rgb.g,
-                mScale.r, mScale.g, mScale.b,
+                mScaleMixed.r, mScaleMixed.g, mScaleMixed.b,
                 &rgb.r, &rgb.g, &rgb.b, &w
             );
             const uint8_t b0_index = RGB_BYTE0(RGB_ORDER);
@@ -710,9 +715,9 @@ struct PixelController {
             if (rgb) {
                 five_bit_hd_gamma_bitshift(
                     rgb.r, rgb.g, rgb.b,
-                    // Note this mScale has the global brightness scale mixed in with the
+                    // Note this mScaleMixed has the global brightness scale mixed in with the
                     // color correction scale.
-                    mScale.r, mScale.g, mScale.b,
+                    mScaleMixed.r, mScaleMixed.g, mScaleMixed.b,
                     &rgb.r, &rgb.g, &rgb.b, &brightness
                 );
             }
