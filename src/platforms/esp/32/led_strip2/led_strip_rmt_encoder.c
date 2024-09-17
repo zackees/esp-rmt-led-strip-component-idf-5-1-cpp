@@ -4,7 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifdef ESP32
+
+#if 0
 
 #include "esp_check.h"
 #include "led_strip_rmt_encoder.h"

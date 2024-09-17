@@ -1,5 +1,5 @@
 
-#ifdef ESP32
+#if 0
 
 /*
  * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
@@ -167,4 +167,4 @@ err:
     return ret;
 }
 
-#endif // ESP32
+#endif // 0

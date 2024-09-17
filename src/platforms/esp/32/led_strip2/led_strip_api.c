@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifdef ESP32
+#if 0
 
 #include "esp_log.h"
 #include "esp_check.h"
