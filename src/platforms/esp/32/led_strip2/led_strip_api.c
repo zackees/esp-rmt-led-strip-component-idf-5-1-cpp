@@ -3,6 +3,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
+#ifdef ESP32
+
 #include "esp_log.h"
 #include "esp_check.h"
 #include "led_strip.h"
@@ -92,3 +95,5 @@ esp_err_t led_strip_del(led_strip_handle_t strip)
     ESP_RETURN_ON_FALSE(strip, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
     return strip->del(strip);
 }
+
+#endif

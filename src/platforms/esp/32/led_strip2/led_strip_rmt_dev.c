@@ -1,3 +1,6 @@
+
+#ifdef ESP32
+
 /*
  * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
  *
@@ -163,3 +166,5 @@ err:
     }
     return ret;
 }
+
+#endif // ESP32
