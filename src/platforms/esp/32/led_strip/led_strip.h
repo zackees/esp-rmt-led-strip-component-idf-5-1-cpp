@@ -11,12 +11,6 @@
 #include "esp_idf_version.h"
 
 
-
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 1, 0)
-#include "led_strip_spi.h"
-#endif
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -4,6 +4,7 @@
 
 #ifdef ESP32
 #include "enabled.h"
+#include <iostream>
 
 #if FASTLED_ESP32_COMPONENT_LED_STRIP_BUILT_IN
 
@@ -58,9 +59,23 @@ led_strip_rmt_config_t make_rmt_config(rmt_clock_source_t clk_src, uint32_t reso
 
 led_strip_handle_t configure_led(int pin, uint32_t led_numbers, uint32_t rmt_res_hz)
 {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0) || FASTLED_ESP32_COMPONENT_LED_STRIP_FORCE_IDF4
-    led_strip_config_t strip_config = make_config(pin, led_numbers, LED_PIXEL_FORMAT_GRB, LED_MODEL_WS2812, 0);
-    led_strip_rmt_config_t rmt_config = make_rmt_config(RMT_CLK_SRC_DEFAULT, rmt_res_hz, 0, false);
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+    led_strip_config_t strip_config = make_config(pin, led_numbers, LED_PIXEL_FORMAT_GRBW, LED_MODEL_WS2812, 0);
+    led_strip_rmt_config_t rmt_config = make_rmt_config(RMT_CLK_SRC_DEFAULT, rmt_res_hz, 0, true);
+
+    // print out the config
+    std::cout << "strip_config.strip_gpio_num: " << strip_config.strip_gpio_num << std::endl;
+    std::cout << "strip_config.max_leds: " << strip_config.max_leds << std::endl;
+    std::cout << "strip_config.led_pixel_format: " << strip_config.led_pixel_format << std::endl;
+    std::cout << "strip_config.led_model: " << strip_config.led_model << std::endl;
+    std::cout << "strip_config.flags.invert_out: " << strip_config.flags.invert_out << std::endl;
+
+    // print out the config
+    std::cout << "rmt_config.clk_src: " << rmt_config.clk_src << std::endl;
+    std::cout << "rmt_config.resolution_hz: " << rmt_config.resolution_hz << std::endl;
+    std::cout << "rmt_config.mem_block_symbols: " << rmt_config.mem_block_symbols << std::endl;
+    std::cout << "rmt_config.flags.with_dma: " << rmt_config.flags.with_dma << std::endl;
+    
 
     // LED Strip object handle
     led_strip_handle_t led_strip;
@@ -89,8 +104,9 @@ void rmt_demo(int led_strip_gpio, uint32_t num_leds, uint32_t rmt_res_hz) {
     led_strip_handle_t led_strip = configure_led(led_strip_gpio, num_leds, rmt_res_hz);
     bool led_on_off = false;
 
-    ESP_LOGI(TAG, "Start blinking LED strip");
+    // ESP_LOGI(TAG, "Start blinking LED strip");
     while (1) {
+        std::cout << "Start blinking LED strip" << std::endl;
         if (led_on_off) {
             /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for each color */
             for (int i = 0; i < num_leds; i++) {
