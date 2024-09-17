@@ -151,6 +151,7 @@ esp_err_t led_strip_new_rmt_device(const led_strip_config_t *led_config, const l
     *ret_strip = &rmt_strip->base;
     return ESP_OK;
 err:
+    std::cout << "Error happened" << std::endl;
     if (rmt_strip) {
         if (rmt_strip->rmt_chan) {
             rmt_del_channel(rmt_strip->rmt_chan);

@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #include "enabled.h"
+#include <iostream>
 
 #if FASTLED_ESP32_COMPONENT_LED_STRIP_BUILT_IN
 
@@ -213,6 +214,7 @@ esp_err_t rmt_new_led_strip_encoder(const led_strip_encoder_config_t *config, rm
     *ret_encoder = &led_encoder->base;
     return ESP_OK;
 err:
+    std::cout << "Error happened" << std::endl;
     if (led_encoder) {
         if (led_encoder->bytes_encoder) {
             rmt_del_encoder(led_encoder->bytes_encoder);
