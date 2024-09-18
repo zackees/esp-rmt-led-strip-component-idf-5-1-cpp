@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include "led_strip/led_strip.h"
 #include "led_strip/rmt_demo.h"
 #include "esp_log.h"
@@ -100,6 +102,7 @@ void led_component_loop(int pin, uint32_t max_leds) {
 }
 
 
-void rmt_demo(int led_strip_gpio, uint32_t num_leds, uint32_t rmt_res_hz) {
-
+void rmt_demo(int led_strip_gpio, uint32_t num_leds) {
+    // TODO: handle rmt_res_hz
+    led_component_loop(led_strip_gpio, num_leds);
 }

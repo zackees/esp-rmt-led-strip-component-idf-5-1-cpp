@@ -1,10 +1,8 @@
 
 #include <Arduino.h>
-
+#include "led_strip/rmt_demo.h"
 
 #define TAG "dev.ino"
-
-
 
 void setup() {
     Serial.begin(9600);
@@ -12,9 +10,6 @@ void setup() {
     esp_log_level_set("*", ESP_LOG_VERBOSE);
     ESP_LOGI(TAG, "Start blinking LED strip");
 }
-
-
-
 
 // How many leds in your strip?
 #define NUM_LEDS 9
@@ -28,6 +23,6 @@ void setup() {
 
 void loop() {
 
-    led_component_loop(DATA_PIN, NUM_LEDS);
+    rmt_demo(DATA_PIN, NUM_LEDS);
     delay(500);
 }
