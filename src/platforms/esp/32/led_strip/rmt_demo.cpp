@@ -156,54 +156,6 @@ void led_strip_hsv2rgb(uint32_t h, uint32_t s, uint32_t v, uint32_t *r, uint32_t
 #define EXAMPLE_LED_NUMBERS         24
 #define EXAMPLE_CHASE_SPEED_MS      100
 
-rmt_tx_channel_config_t make_tx_channel_config(
-    rmt_clock_source_t clock_src,
-    size_t mem_block_symbols,
-    uint32_t resolution_hz,
-    int strip_gpio_num,
-    size_t trans_queue_depth,
-    int intr_priority,
-    bool with_dma,
-    bool invert_out
-)
-{
-    rmt_tx_channel_config_t out = {};
-    memset(&out, 0, sizeof(rmt_tx_channel_config_t));
-
-    //     .clk_src = clock_src,
-    //     .gpio_num = strip_gpio_num,
-    //     .mem_block_symbols = mem_block_symbols,
-    //     .resolution_hz = resolution_hz
-    // };
-    out.gpio_num = static_cast<gpio_num_t>(strip_gpio_num);
-    out.clk_src = clock_src;
-    out.resolution_hz = resolution_hz;
-    out.mem_block_symbols = mem_block_symbols;
-    out.trans_queue_depth = trans_queue_depth;
-    out.intr_priority = intr_priority;
-    out.flags.with_dma = with_dma;
-    out.flags.invert_out = invert_out;
-
-    // print out all values
-    std::cout << "out.clk_src: " << out.clk_src << std::endl;
-    std::cout << "out.gpio_num: " << out.gpio_num << std::endl;
-    std::cout << "out.mem_block_symbols: " << out.mem_block_symbols << std::endl;
-    std::cout << "out.resolution_hz: " << out.resolution_hz << std::endl;
-    std::cout << "out.flags.with_dma: " << out.flags.with_dma << std::endl;
-    std::cout << "out.flags.invert_out: " << out.flags.invert_out << std::endl;
-    return out;
-}
-
-#undef ESP_ERROR_CHECK
-
-#define ESP_ERROR_CHECK(x) do { \
-    esp_err_t __err_rc = (x); \
-    if (__err_rc != ESP_OK) { \
-        std::cout << "Error " << __err_rc << ": " << esp_err_to_name(__err_rc) << std::endl; \
-        return; \
-    } \
-} while (0)
-
 void rmt_demo(int led_strip_gpio, uint32_t num_leds, uint32_t rmt_res_hz) {
     std::cout << "rmt_demo\n";
     uint32_t red = 0;
@@ -217,23 +169,13 @@ void rmt_demo(int led_strip_gpio, uint32_t num_leds, uint32_t rmt_res_hz) {
 
     ESP_LOGI(TAG, "Create RMT TX channel");
     rmt_channel_handle_t led_chan = NULL;
-    // rmt_tx_channel_config_t tx_chan_config = {
-    //     .clk_src = RMT_CLK_SRC_DEFAULT, // select source clock
-    //     .gpio_num = led_strip_gpio,
-    //     .mem_block_symbols = 64, // increase the block size can make the LED less flickering
-    //     .resolution_hz = rmt_res_hz,
-    //     .trans_queue_depth = 4, // set the number of transactions that can be pending in the background
-    // };
-    rmt_tx_channel_config_t tx_chan_config = make_tx_channel_config(
-        RMT_CLK_SRC_DEFAULT,
-        64,
-        rmt_res_hz,
-        led_strip_gpio,
-        4,
-        0,
-        false,
-        false
-    );
+    rmt_tx_channel_config_t tx_chan_config = {
+        .gpio_num = gpio_num_t(led_strip_gpio),
+        .clk_src = RMT_CLK_SRC_DEFAULT, // select source clock
+        .resolution_hz = rmt_res_hz,
+        .mem_block_symbols = 64, // increase the block size can make the LED less flickering
+        .trans_queue_depth = 4, // set the number of transactions that can be pending in the background
+    };
     ESP_ERROR_CHECK(rmt_new_tx_channel(&tx_chan_config, &led_chan));
 
 
