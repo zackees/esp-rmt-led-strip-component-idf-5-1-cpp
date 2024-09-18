@@ -137,7 +137,6 @@ void delete_strip(led_strip_rmt_obj *rmt_strip) {
         if (unlikely(!(a))) {                                                                              \
             ESP_LOGE(log_tag, "%s(%d): " format, __FUNCTION__, __LINE__ __VA_OPT__(,) __VA_ARGS__);        \
             ret = err_code;                                                                                \
-            delete_strip(rmt_strip);                                                                   \
             return ret;                                                                                    \
         }                                                                                                  \
     } while (0)
@@ -147,14 +146,28 @@ void delete_strip(led_strip_rmt_obj *rmt_strip) {
         if (unlikely(err_rc_ != ESP_OK)) {                                                                 \
             ESP_LOGE(log_tag, "%s(%d): " format, __FUNCTION__, __LINE__ __VA_OPT__(,) __VA_ARGS__);        \
             ret = err_rc_;                                                                                 \
-            delete_strip(rmt_strip);                                                                   \
             return ret;                                                                                    \
         }                                                                                                  \
     } while(0)
 
+struct Cleanup {
+    led_strip_rmt_obj *rmt_strip;
+    Cleanup(led_strip_rmt_obj *rmt_strip) : mRmtStrip(rmt_strip) {}
+    ~Cleanup() {
+        if (rmt_strip) {
+            delete_strip(rmt_strip);
+        }
+    }
+    void release() {
+        mRmtStrip = nullptr;
+    }
+    led_strip_rmt_obj* mRmtStrip = nullptr;
+};
+
 esp_err_t led_strip_new_rmt_device(const led_strip_config_t *led_config, const led_strip_rmt_config_t *rmt_config, led_strip_handle_t *ret_strip)
 {
     led_strip_rmt_obj *rmt_strip = NULL;
+    Cleanup cleanup_if_failure(rmt_strip);
     esp_err_t ret = ESP_OK;
     ESP_GOTO_ON_FALSE(led_config && rmt_config && ret_strip, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
     ESP_GOTO_ON_FALSE(led_config->led_pixel_format < LED_PIXEL_FORMAT_INVALID, ESP_ERR_INVALID_ARG, err, TAG, "invalid led_pixel_format");
@@ -211,6 +224,7 @@ esp_err_t led_strip_new_rmt_device(const led_strip_config_t *led_config, const l
     rmt_strip->base.del = led_strip_rmt_del;
 
     *ret_strip = &rmt_strip->base;
+    cleanup_if_failure.release();
     return ESP_OK;
     #if 0
 err:

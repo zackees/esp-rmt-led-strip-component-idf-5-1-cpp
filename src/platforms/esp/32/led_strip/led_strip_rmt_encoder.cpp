@@ -118,7 +118,6 @@ void delete_encoder(rmt_led_strip_encoder_t *led_encoder) {
         if (unlikely(!(a))) {                                                                              \
             ESP_LOGE(log_tag, "%s(%d): " format, __FUNCTION__, __LINE__ __VA_OPT__(,) __VA_ARGS__);        \
             ret = err_code;                                                                                \
-            delete_encoder(led_encoder);                                                                   \
             return ret;                                                                                    \
         }                                                                                                  \
     } while (0)
@@ -128,15 +127,30 @@ void delete_encoder(rmt_led_strip_encoder_t *led_encoder) {
         if (unlikely(err_rc_ != ESP_OK)) {                                                                 \
             ESP_LOGE(log_tag, "%s(%d): " format, __FUNCTION__, __LINE__ __VA_OPT__(,) __VA_ARGS__);        \
             ret = err_rc_;                                                                                 \
-            delete_encoder(led_encoder);                                                                   \
             return ret;                                                                                    \
         }                                                                                                  \
     } while(0)
+
+
+struct Cleanup {
+    Cleanup(rmt_led_strip_encoder_t *enc) : mEncoder(enc) {}
+    ~Cleanup() {
+        if (mEncoder) {
+            delete_encoder(mEncoder);
+        }
+    }
+    void release() {
+        mEncoder = nullptr;
+    }
+    rmt_led_strip_encoder_t* mEncoder = nullptr;
+};
+
 
 esp_err_t rmt_new_led_strip_encoder(const led_strip_encoder_config_t *config, rmt_encoder_handle_t *ret_encoder)
 {
     esp_err_t ret = ESP_OK;
     rmt_led_strip_encoder_t *led_encoder = NULL;
+    Cleanup cleanup_if_fialure(led_encoder);
 
     // RmtLedStripEncoderDeleterOnError deleter(&ret, &led_encoder);
     ESP_GOTO_ON_FALSE(config && ret_encoder, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
@@ -200,6 +214,7 @@ esp_err_t rmt_new_led_strip_encoder(const led_strip_encoder_config_t *config, rm
         .level1 = 0,
     };
     *ret_encoder = &led_encoder->base;
+    cleanup_if_fialure.release();
     return ESP_OK;
     /*
 err:

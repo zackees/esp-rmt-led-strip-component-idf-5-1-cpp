@@ -38,6 +38,9 @@
         "initializer_list": "cpp",
         "utility": "cpp",
         "new": "cpp",
-        "numeric": "cpp"
+        "numeric": "cpp",
+        "memory": "cpp",
+        "semaphore": "cpp",
+        "stop_token": "cpp"
     }
 }
