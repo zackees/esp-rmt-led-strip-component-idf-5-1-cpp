@@ -81,14 +81,8 @@ led_strip_handle_t configure_led(int pin, uint32_t max_leds, led_model_t chipset
 
 
 
-void demo(int led_strip_gpio, uint32_t num_leds, LedStripMode mode) {
+void run_led_demo(led_strip_handle_t led_strip, uint32_t num_leds) {
     const int MAX_BRIGHTNESS = 5;
-    led_pixel_format_t rgbw_mode = {};
-    led_model_t chipset = {};
-    to_esp_modes(mode, &chipset, &rgbw_mode);
-    const bool is_rgbw_active = is_rgbw_mode_active(rgbw_mode);
-    // rmt_demo(DATA_PIN, NUM_LEDS);
-    led_strip_handle_t led_strip = configure_led(led_strip_gpio, num_leds, chipset, rgbw_mode);
     bool led_on_off = false;
     while (1) {
         ESP_LOGI(TAG, "Looping");
@@ -115,6 +109,17 @@ void demo(int led_strip_gpio, uint32_t num_leds, LedStripMode mode) {
         vTaskDelay(pdMS_TO_TICKS(500));
     }
 }
+void demo(int led_strip_gpio, uint32_t num_leds, LedStripMode mode) {
+    led_pixel_format_t rgbw_mode = {};
+    led_model_t chipset = {};
+    to_esp_modes(mode, &chipset, &rgbw_mode);
+    const bool is_rgbw_active = is_rgbw_mode_active(rgbw_mode);
+    // rmt_demo(DATA_PIN, NUM_LEDS);
+    led_strip_handle_t led_strip = configure_led(led_strip_gpio, num_leds, chipset, rgbw_mode);
+    run_led_demo(led_strip, num_leds);
+}
+
+
 
 
 LED_STRIP_NAMESPACE_END
