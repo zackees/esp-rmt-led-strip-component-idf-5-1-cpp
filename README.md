@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository contains a C++ port of the Espressif RMT LED strip component (version 2.2.5) specifically designed for the ESP32 family of chips. The code is compatible with the Arduino and PlatformIO ecosystems, allowing for easy integration into existing projects.
+This repository contains a C++ port of the Espressif RMT LED strip component (version 2.2.5, grabbed September 2024) specifically designed for the ESP32 family of chips. The code is compatible with the Arduino and PlatformIO ecosystems, allowing for easy integration into existing projects.
 
 The library addresses several C-specific features in the original codebase that do not compile in standard C++. Future updates may include support for asynchronous RMT output to LED strips, enhancing performance by allowing parallel output operations.
 

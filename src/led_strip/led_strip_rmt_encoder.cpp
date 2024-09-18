@@ -202,19 +202,6 @@ esp_err_t rmt_new_led_strip_encoder(const led_strip_encoder_config_t *config, rm
     *ret_encoder = &led_encoder->base;
     cleanup_if_fialure.release();
     return ESP_OK;
-    /*
-err:
-    if (led_encoder) {
-        if (led_encoder->bytes_encoder) {
-            rmt_del_encoder(led_encoder->bytes_encoder);
-        }
-        if (led_encoder->copy_encoder) {
-            rmt_del_encoder(led_encoder->copy_encoder);
-        }
-        free(led_encoder);
-    }
-    return ret;
-    */
 }
 
 

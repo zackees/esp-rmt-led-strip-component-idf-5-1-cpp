@@ -9,13 +9,61 @@ LED_STRIP_NAMESPACE_BEGIN
 
 #define TAG "rmt_demo.cpp"
 
-led_strip_handle_t configure_led(int pin, uint32_t max_leds) {
+#if 0
+
+
+typedef enum {
+    // Note - Zach Vorhies - Only this enum means that there is no re-ordering of the colors.
+    LED_PIXEL_FORMAT_GRB,    /*!< Pixel format: GRB */
+    LED_PIXEL_FORMAT_GRBW,   /*!< Pixel format: GRBW */
+    LED_PIXEL_FORMAT_INVALID /*!< Invalid pixel format */
+} led_pixel_format_t;
+
+
+typedef enum {
+    LED_MODEL_WS2812, /*!< LED strip model: WS2812 */
+    LED_MODEL_SK6812, /*!< LED strip model: SK6812 */
+    LED_MODEL_INVALID /*!< Invalid LED strip model */
+} led_model_t;
+
+#endif
+
+void to_esp_modes(LedStripMode mode, led_model_t* out_chipset, led_pixel_format_t* out_rgbw) {
+    switch (mode) {
+        case WS2812:
+            *out_rgbw = LED_PIXEL_FORMAT_GRB;
+            *out_chipset = LED_MODEL_WS2812;
+            break;
+        case kSK6812:
+            *out_rgbw = LED_PIXEL_FORMAT_GRB;
+            *out_chipset = LED_MODEL_SK6812;
+            break;
+        case WS2812_RGBW:
+            *out_rgbw = LED_PIXEL_FORMAT_GRBW;
+            *out_chipset = LED_MODEL_WS2812;
+            break;
+        case kSK6812_RGBW:
+            *out_rgbw = LED_PIXEL_FORMAT_GRBW;
+            *out_chipset = LED_MODEL_SK6812;
+            break;
+        default:
+            ESP_LOGE(TAG, "Invalid LedStripMode");
+            break;
+    }
+}
+
+bool is_rgbw_mode_active(led_pixel_format_t rgbw_mode) {
+    return rgbw_mode == LED_PIXEL_FORMAT_GRBW;
+}
+
+
+led_strip_handle_t configure_led(int pin, uint32_t max_leds, led_model_t chipset, led_pixel_format_t rgbw) {
     // LED strip general initialization, according to your led board design
     led_strip_config_t strip_config = {};
     strip_config.strip_gpio_num = pin;
     strip_config.max_leds = max_leds;
-    strip_config.led_pixel_format = LED_PIXEL_FORMAT_GRBW;
-    strip_config.led_model = LED_MODEL_WS2812;
+    strip_config.led_pixel_format = rgbw;
+    strip_config.led_model = chipset;
     strip_config.flags.invert_out = 0;
 
     // print out the values of the configuration
@@ -50,18 +98,23 @@ led_strip_handle_t configure_led(int pin, uint32_t max_leds) {
 }
 
 
-void led_component_loop(int pin, uint32_t max_leds) {
+
+
+void demo(int led_strip_gpio, uint32_t num_leds, LedStripMode mode) {
     const int MAX_BRIGHTNESS = 5;
-    ESP_LOGI(TAG, "Starting loop");
+    led_pixel_format_t rgbw_mode = {};
+    led_model_t chipset = {};
+    to_esp_modes(mode, &chipset, &rgbw_mode);
+    const bool is_rgbw_active = is_rgbw_mode_active(rgbw_mode);
     // rmt_demo(DATA_PIN, NUM_LEDS);
-    led_strip_handle_t led_strip = configure_led(pin, max_leds);
+    led_strip_handle_t led_strip = configure_led(led_strip_gpio, num_leds, chipset, rgbw_mode);
     bool led_on_off = false;
     while (1) {
         ESP_LOGI(TAG, "Looping");
         if (led_on_off) {
             /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for each
              * color */
-            for (int i = 0; i < max_leds; i++) {
+            for (int i = 0; i < num_leds; i++) {
                 // Yes, we are sending RGB instead of RGBW data, but something
                 // should still appear.
                 ESP_ERROR_CHECK(
@@ -80,12 +133,6 @@ void led_component_loop(int pin, uint32_t max_leds) {
         led_on_off = !led_on_off;
         vTaskDelay(pdMS_TO_TICKS(500));
     }
-}
-
-
-void demo(int led_strip_gpio, uint32_t num_leds) {
-    // TODO: handle rmt_res_hz
-    led_component_loop(led_strip_gpio, num_leds);
 }
 
 

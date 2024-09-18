@@ -28,7 +28,7 @@ void setup() {
 
 
 void loop() {
-    led_strip::demo(DATA_PIN, NUM_LEDS);
+    led_strip::demo(DATA_PIN, NUM_LEDS, led_strip::WS2812_RGBW);
     delay(500);
 }
 

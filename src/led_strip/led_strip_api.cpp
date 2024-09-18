@@ -102,5 +102,4 @@ esp_err_t led_strip_del(led_strip_handle_t strip)
     return strip->del(strip);
 }
 
-
 LED_STRIP_NAMESPACE_END
