@@ -199,10 +199,11 @@ void led_component_loop() {
 
 void loop() {
 #ifdef USE_ARDUINO_RMT
-    // rmt_demo(DATA_PIN, NUM_LEDS);
+    // 
     arduino_rmt_loop();
 #else
     led_component_loop();
+    // rmt_demo(DATA_PIN, NUM_LEDS);
 #endif
     delay(500);
 }
