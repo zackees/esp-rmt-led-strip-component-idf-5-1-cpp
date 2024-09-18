@@ -38,7 +38,7 @@ void setup() {
     ESP_LOGI(TAG, "Start blinking LED strip");
 }
 
-led_strip_handle_t configure_led(void) {
+led_strip_handle_t configure_led(int pin, uint32_t max_leds) {
     // LED strip general initialization, according to your led board design
     led_strip_config_t strip_config = {};
     //    .strip_gpio_num = DATA_PIN,   // The GPIO that connected to the LED
@@ -48,8 +48,8 @@ led_strip_handle_t configure_led(void) {
     //    LED strip model .flags.invert_out = false,                // whether
     //    to invert the output signal
     //};
-    strip_config.strip_gpio_num = DATA_PIN;
-    strip_config.max_leds = NUM_LEDS;
+    strip_config.strip_gpio_num = pin;
+    strip_config.max_leds = max_leds;
     strip_config.led_pixel_format = LED_PIXEL_FORMAT_GRB;
     strip_config.led_model = LED_MODEL_WS2812;
     strip_config.flags.invert_out = 0;
@@ -166,10 +166,10 @@ void arduino_rmt_loop() {
 }
 
 // WHY YOU NO WORK?!
-void led_component_loop() {
+void led_component_loop(int pin, uint32_t max_leds) {
     ESP_LOGI(TAG, "Starting loop");
     // rmt_demo(DATA_PIN, NUM_LEDS);
-    led_strip_handle_t led_strip = configure_led();
+    led_strip_handle_t led_strip = configure_led(pin, max_leds);
     bool led_on_off = false;
     while (1) {
         ESP_LOGI(TAG, "Looping");
@@ -202,7 +202,7 @@ void loop() {
     // 
     arduino_rmt_loop();
 #else
-    led_component_loop();
+    led_component_loop(DATA_PIN, NUM_LEDS);
     // rmt_demo(DATA_PIN, NUM_LEDS);
 #endif
     delay(500);
