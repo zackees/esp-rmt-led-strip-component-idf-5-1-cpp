@@ -61,7 +61,32 @@ void draw_strip(led_strip_handle_t led_strip) {
     ESP_ERROR_CHECK(led_strip_refresh(led_strip));
 }
 
-void draw_loop(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active) {
+void draw_color_cycle(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active) {
+    const int MAX_BRIGHTNESS = 64;
+    const float SPEED = 0.05f;
+    float time = 0.0f;
+
+    while (1) {
+        ESP_LOGI(TAG, "Looping");
+        
+        for (int i = 0; i < num_leds; i++) {
+            float hue = fmodf(time + (float)i / num_leds, 1.0f);
+            
+            float r = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 0.0f / 3.0f)));
+            float g = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 1.0f / 3.0f)));
+            float b = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 2.0f / 3.0f)));
+            
+            set_pixel(led_strip, i, rgbw_active, r, g, b);
+        }
+        
+        draw_strip(led_strip);
+        ESP_LOGI(TAG, "Color cycle updated");
+        
+        time += SPEED;
+    }
+}
+
+void draw_blink_on_off_white(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active) {
     const int MAX_BRIGHTNESS = 5;
     bool led_on_off = false;
     while (1) {
@@ -89,6 +114,15 @@ void draw_loop(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active
         vTaskDelay(pdMS_TO_TICKS(500));
     }
 }
+
+void draw_loop(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active) {
+    if (true) {
+        draw_color_cycle(led_strip, num_leds, rgbw_active);
+    } else {
+        draw_blink_on_off_white(led_strip, num_leds, rgbw_active);
+    }
+}
+
 void demo(int led_strip_gpio, uint32_t num_leds, LedStripMode mode) {
     led_pixel_format_t rgbw_mode = {};
     led_model_t chipset = {};
