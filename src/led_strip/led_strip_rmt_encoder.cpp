@@ -20,8 +20,7 @@
 #include "namespace.h"
 LED_STRIP_NAMESPACE_BEGIN
 
-//static const char *TAG = "led_rmt_encoder";
-#define TAG "led_rmt_encoder"
+#define TAG "led_strip"
 
 // Replaces C's ability to or enums together. This is a C++ version of the same thing.
 template<typename EnumT>
@@ -107,10 +106,9 @@ void delete_encoder(rmt_led_strip_encoder_t *led_encoder) {
     }
 }
 
+// now replace these with C++ versions that do the same thing as the jump statement
 #undef ESP_GOTO_ON_FALSE
 #undef ESP_GOTO_ON_ERROR
-
-// now replace these with C++ versions that do the same thing as the jump statement
 
 #define ESP_GOTO_ON_FALSE(a, err_code, goto_tag, log_tag, format, ...) do {                                \
         if (unlikely(!(a))) {                                                                              \
