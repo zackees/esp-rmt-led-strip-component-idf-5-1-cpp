@@ -1,32 +1,13 @@
 #include <Arduino.h>
 
 #include "led_strip/led_strip.h"
-#include "led_strip/demo.h"
+#include "demo.h"
 #include "esp_log.h"
 
 #include "namespace.h"
 LED_STRIP_NAMESPACE_BEGIN
 
 #define TAG "rmt_demo.cpp"
-
-#if 0
-
-
-typedef enum {
-    // Note - Zach Vorhies - Only this enum means that there is no re-ordering of the colors.
-    LED_PIXEL_FORMAT_GRB,    /*!< Pixel format: GRB */
-    LED_PIXEL_FORMAT_GRBW,   /*!< Pixel format: GRBW */
-    LED_PIXEL_FORMAT_INVALID /*!< Invalid pixel format */
-} led_pixel_format_t;
-
-
-typedef enum {
-    LED_MODEL_WS2812, /*!< LED strip model: WS2812 */
-    LED_MODEL_SK6812, /*!< LED strip model: SK6812 */
-    LED_MODEL_INVALID /*!< Invalid LED strip model */
-} led_model_t;
-
-#endif
 
 void to_esp_modes(LedStripMode mode, led_model_t* out_chipset, led_pixel_format_t* out_rgbw) {
     switch (mode) {

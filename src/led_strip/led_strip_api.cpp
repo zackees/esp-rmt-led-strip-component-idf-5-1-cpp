@@ -3,6 +3,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+#include "esp_idf_version.h"
+
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+#error "This library is only designed to run on ESP-IDF v5.0.0 and later"
+#endif
 
 #include "esp_log.h"
 #include "esp_check.h"
