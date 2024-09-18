@@ -1,0 +1,5 @@
+#pragma once
+
+#define LED_STRIP_NAMESPACE_BEGIN
+
+#define LED_STRIP_NAMESPACE_END
