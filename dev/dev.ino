@@ -4,7 +4,6 @@
 #include <FastLED.h>
 #include <iostream>
 
-#include <Arduino.h>
 
 #include "rgbw.h"
 
@@ -12,8 +11,7 @@ extern "C" {
 #include "esp_log.h"
 }
 
-// Only the ARDUINO_RMT backend seems to work?!?!
-// #define USE_ARDUINO_RMT
+
 
 #define TAG "dev.ino"
 
@@ -34,7 +32,6 @@ void setup() {
     Serial.begin(9600);
     Serial.setDebugOutput(true);
     esp_log_level_set("*", ESP_LOG_VERBOSE);
-    delay(3000);
     ESP_LOGI(TAG, "Start blinking LED strip");
 }
 
@@ -50,7 +47,7 @@ led_strip_handle_t configure_led(int pin, uint32_t max_leds) {
     //};
     strip_config.strip_gpio_num = pin;
     strip_config.max_leds = max_leds;
-    strip_config.led_pixel_format = LED_PIXEL_FORMAT_GRB;
+    strip_config.led_pixel_format = LED_PIXEL_FORMAT_GRBW;
     strip_config.led_model = LED_MODEL_WS2812;
     strip_config.flags.invert_out = 0;
 
@@ -98,75 +95,11 @@ led_strip_handle_t configure_led(int pin, uint32_t max_leds) {
     return led_strip;
 }
 
-/// Copied from adafruit. Working as expected.
-void espShow(uint8_t pin, uint8_t *pixels, uint32_t numBytes,
-             boolean is800KHz) {
-    rmt_data_t led_data[numBytes * 8];
 
-    if (!rmtInit(pin, RMT_TX_MODE, RMT_MEM_NUM_BLOCKS_1, 10000000)) {
-        log_e("Failed to init RMT TX mode on pin %d", pin);
-        return;
-    }
-
-    int i = 0;
-    for (int b = 0; b < numBytes; b++) {
-        for (int bit = 0; bit < 8; bit++) {
-            if (pixels[b] & (1 << (7 - bit))) {
-                led_data[i].level0 = 1;
-                led_data[i].duration0 = 8;
-                led_data[i].level1 = 0;
-                led_data[i].duration1 = 4;
-            } else {
-                led_data[i].level0 = 1;
-                led_data[i].duration0 = 4;
-                led_data[i].level1 = 0;
-                led_data[i].duration1 = 8;
-            }
-            i++;
-        }
-    }
-
-    // pinMode(pin, OUTPUT);  // don't do this, will cause the rmt to disable!
-    rmtWrite(pin, led_data, numBytes * 8, RMT_WAIT_FOR_EVER);
-}
-
-// THIS WORKS GREAT!
-void arduino_rmt_loop() {
-    // Time scaling factors for each component
-    const int TIME_FACTOR_HUE = 60;
-    const int TIME_FACTOR_SAT = 100;
-    const int TIME_FACTOR_VAL = 100;
-
-    uint32_t now = millis() >> 3;
-
-    for (int i = 0; i < NUM_LEDS; i++) {
-        // Use different noise functions for each LED and each color component
-        uint8_t hue = inoise16(now * TIME_FACTOR_HUE, i * 1000, 0) >> 8;
-        uint8_t sat = inoise16(now * TIME_FACTOR_SAT, i * 2000, 1000) >> 8;
-        uint8_t val = inoise16(now * TIME_FACTOR_VAL, i * 3000, 2000) >> 8;
-
-        // Map the noise to full range for saturation and value
-        sat = map(sat, 0, 255, 30, 255);
-        val = map(val, 0, 255, 100, 255);
-
-        leds[i] = CHSV(hue, sat, val);
-    }
-
-    uint8_t rgbw_pixels[NUM_LEDS * 4];
-    uint8_t *rgbw_pixels_ptr = rgbw_pixels;
-    for (int i = 0; i < NUM_LEDS; i++) {
-        rgb_2_rgbw(kRGBWExactColors, kRGBWDefaultColorTemp, leds[i].r,
-                   leds[i].g, leds[i].b, 255, 255, 255, rgbw_pixels_ptr,
-                   rgbw_pixels_ptr + 1, rgbw_pixels_ptr + 2,
-                   rgbw_pixels_ptr + 3);
-        rgbw_pixels_ptr += 4;
-    }
-
-    espShow(DATA_PIN, rgbw_pixels, sizeof(rgbw_pixels), true);
-}
 
 // WHY YOU NO WORK?!
 void led_component_loop(int pin, uint32_t max_leds) {
+    const int MAX_BRIGHTNESS = 5;
     ESP_LOGI(TAG, "Starting loop");
     // rmt_demo(DATA_PIN, NUM_LEDS);
     led_strip_handle_t led_strip = configure_led(pin, max_leds);
@@ -180,7 +113,7 @@ void led_component_loop(int pin, uint32_t max_leds) {
                 // Yes, we are sending RGB instead of RGBW data, but something
                 // should still appear.
                 ESP_ERROR_CHECK(
-                    led_strip_set_pixel(led_strip, i, 255, 255, 255));
+                    led_strip_set_pixel_rgbw(led_strip, i, MAX_BRIGHTNESS, MAX_BRIGHTNESS, MAX_BRIGHTNESS, MAX_BRIGHTNESS));
             }
             /* Refresh the strip to send data */
             ESP_ERROR_CHECK(led_strip_refresh(led_strip));
@@ -198,12 +131,7 @@ void led_component_loop(int pin, uint32_t max_leds) {
 }
 
 void loop() {
-#ifdef USE_ARDUINO_RMT
-    // 
-    arduino_rmt_loop();
-#else
+
     led_component_loop(DATA_PIN, NUM_LEDS);
-    // rmt_demo(DATA_PIN, NUM_LEDS);
-#endif
     delay(500);
 }
