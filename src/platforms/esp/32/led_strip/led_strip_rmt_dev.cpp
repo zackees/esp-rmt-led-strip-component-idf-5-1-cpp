@@ -19,13 +19,6 @@
 #include <iostream>
 
 
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 #include "esp_log.h"
 #include "esp_check.h"
 #include "driver/rmt_tx.h"
@@ -42,6 +35,8 @@ extern "C" {
 #else
 #define LED_STRIP_RMT_DEFAULT_MEM_BLOCK_SYMBOLS 48
 #endif
+
+#include "cleanup.h"
 
 // static const char *TAG = "led_strip_rmt";
 #define TAG "led_strip_rmt"
@@ -150,24 +145,13 @@ void delete_strip(led_strip_rmt_obj *rmt_strip) {
         }                                                                                                  \
     } while(0)
 
-struct Cleanup {
-    led_strip_rmt_obj *rmt_strip;
-    Cleanup(led_strip_rmt_obj *rmt_strip) : mRmtStrip(rmt_strip) {}
-    ~Cleanup() {
-        if (rmt_strip) {
-            delete_strip(rmt_strip);
-        }
-    }
-    void release() {
-        mRmtStrip = nullptr;
-    }
-    led_strip_rmt_obj* mRmtStrip = nullptr;
-};
+
+
 
 esp_err_t led_strip_new_rmt_device(const led_strip_config_t *led_config, const led_strip_rmt_config_t *rmt_config, led_strip_handle_t *ret_strip)
 {
     led_strip_rmt_obj *rmt_strip = NULL;
-    Cleanup cleanup_if_failure(rmt_strip);
+    Cleanup cleanup_if_failure(delete_strip, rmt_strip);
     esp_err_t ret = ESP_OK;
     ESP_GOTO_ON_FALSE(led_config && rmt_config && ret_strip, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
     ESP_GOTO_ON_FALSE(led_config->led_pixel_format < LED_PIXEL_FORMAT_INVALID, ESP_ERR_INVALID_ARG, err, TAG, "invalid led_pixel_format");
@@ -242,11 +226,6 @@ err:
     #endif
 }
 
-
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif // ESP_IDF_VERSION
 

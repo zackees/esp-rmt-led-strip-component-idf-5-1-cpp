@@ -12,24 +12,21 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnarrowing"
 
-template<typename EnumT>
-EnumT enum_or(EnumT a, EnumT b) {
-    return static_cast<EnumT>(static_cast<int>(a) | static_cast<int>(b));
-}
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 
 #include "esp_check.h"
 
 
 #include "led_strip_rmt_encoder.h"
+#include "cleanup.h"
 
 //static const char *TAG = "led_rmt_encoder";
 #define TAG "led_rmt_encoder"
+
+// Replaces C's ability to or enums together. This is a C++ version of the same thing.
+template<typename EnumT>
+EnumT enum_or(EnumT a, EnumT b) {
+    return static_cast<EnumT>(static_cast<int>(a) | static_cast<int>(b));
+}
 
 typedef struct {
     rmt_encoder_t base;
@@ -132,25 +129,13 @@ void delete_encoder(rmt_led_strip_encoder_t *led_encoder) {
     } while(0)
 
 
-struct Cleanup {
-    Cleanup(rmt_led_strip_encoder_t *enc) : mEncoder(enc) {}
-    ~Cleanup() {
-        if (mEncoder) {
-            delete_encoder(mEncoder);
-        }
-    }
-    void release() {
-        mEncoder = nullptr;
-    }
-    rmt_led_strip_encoder_t* mEncoder = nullptr;
-};
 
 
 esp_err_t rmt_new_led_strip_encoder(const led_strip_encoder_config_t *config, rmt_encoder_handle_t *ret_encoder)
 {
     esp_err_t ret = ESP_OK;
     rmt_led_strip_encoder_t *led_encoder = NULL;
-    Cleanup cleanup_if_fialure(led_encoder);
+    Cleanup cleanup_if_fialure(delete_encoder, led_encoder);
 
     // RmtLedStripEncoderDeleterOnError deleter(&ret, &led_encoder);
     ESP_GOTO_ON_FALSE(config && ret_encoder, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
@@ -231,10 +216,6 @@ err:
     */
 }
 
-
-#ifdef __cplusplus
-}
-#endif
 
 #pragma GCC diagnostic pop
 
