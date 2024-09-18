@@ -92,8 +92,13 @@ void run_led_demo(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_act
             for (int i = 0; i < num_leds; i++) {
                 // Yes, we are sending RGB instead of RGBW data, but something
                 // should still appear.
-                ESP_ERROR_CHECK(
-                    led_strip_set_pixel_rgbw(led_strip, i, MAX_BRIGHTNESS, MAX_BRIGHTNESS, MAX_BRIGHTNESS, MAX_BRIGHTNESS));
+                if (rgbw_active) {
+                    ESP_ERROR_CHECK(
+                        led_strip_set_pixel_rgbw(led_strip, i, MAX_BRIGHTNESS, MAX_BRIGHTNESS, MAX_BRIGHTNESS, MAX_BRIGHTNESS));
+                } else {
+                    ESP_ERROR_CHECK(
+                        led_strip_set_pixel(led_strip, i, MAX_BRIGHTNESS, MAX_BRIGHTNESS, MAX_BRIGHTNESS));
+                }
             }
             /* Refresh the strip to send data */
             ESP_ERROR_CHECK(led_strip_refresh(led_strip));
@@ -114,12 +119,9 @@ void demo(int led_strip_gpio, uint32_t num_leds, LedStripMode mode) {
     led_model_t chipset = {};
     to_esp_modes(mode, &chipset, &rgbw_mode);
     const bool is_rgbw_active = is_rgbw_mode_active(rgbw_mode);
-    // rmt_demo(DATA_PIN, NUM_LEDS);
     led_strip_handle_t led_strip = configure_led(led_strip_gpio, num_leds, chipset, rgbw_mode);
     run_led_demo(led_strip, num_leds, is_rgbw_active);
 }
-
-
 
 
 LED_STRIP_NAMESPACE_END
