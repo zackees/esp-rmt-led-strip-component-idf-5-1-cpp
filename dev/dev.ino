@@ -96,8 +96,6 @@ led_strip_handle_t configure_led(int pin, uint32_t max_leds) {
 }
 
 
-
-// WHY YOU NO WORK?!
 void led_component_loop(int pin, uint32_t max_leds) {
     const int MAX_BRIGHTNESS = 5;
     ESP_LOGI(TAG, "Starting loop");
