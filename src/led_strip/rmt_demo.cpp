@@ -4,38 +4,16 @@
 #include "led_strip/rmt_demo.h"
 #include "esp_log.h"
 
-
 #define TAG "rmt_demo.cpp"
-
 
 led_strip_handle_t configure_led(int pin, uint32_t max_leds) {
     // LED strip general initialization, according to your led board design
     led_strip_config_t strip_config = {};
-    //    .strip_gpio_num = DATA_PIN,   // The GPIO that connected to the LED
-    //    strip's data line .max_leds = NUM_LEDS,        // The number of LEDs
-    //    in the strip, .led_pixel_format = LED_PIXEL_FORMAT_GRB, // Pixel
-    //    format of your LED strip .led_model = LED_MODEL_WS2812,            //
-    //    LED strip model .flags.invert_out = false,                // whether
-    //    to invert the output signal
-    //};
     strip_config.strip_gpio_num = pin;
     strip_config.max_leds = max_leds;
     strip_config.led_pixel_format = LED_PIXEL_FORMAT_GRBW;
     strip_config.led_model = LED_MODEL_WS2812;
     strip_config.flags.invert_out = 0;
-
-    // LED strip backend configuration: RMT
-    //     led_strip_rmt_config_t rmt_config = {
-    // #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
-    //         .rmt_channel = 0,
-    // #else
-    //         .clk_src = RMT_CLK_SRC_DEFAULT,        // different clock source
-    //         can lead to different power consumption .resolution_hz =
-    //         LED_STRIP_RMT_RES_HZ, // RMT counter clock frequency
-    //         .flags.with_dma = false,               // DMA feature is
-    //         available on ESP target like ESP32-S3
-    // #endif
-    //     };
 
     // print out the values of the configuration
     ESP_LOGI(TAG, "strip_config.strip_gpio_num: %d",

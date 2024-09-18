@@ -10,11 +10,6 @@
 #include "led_strip_rmt.h"
 #include "esp_idf_version.h"
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * @brief Set RGB for a specific pixel
  *
@@ -102,7 +97,3 @@ esp_err_t led_strip_clear(led_strip_handle_t strip);
  *      - ESP_FAIL: Free resources failed because error occurred
  */
 esp_err_t led_strip_del(led_strip_handle_t strip);
-
-#ifdef __cplusplus
-}
-#endif

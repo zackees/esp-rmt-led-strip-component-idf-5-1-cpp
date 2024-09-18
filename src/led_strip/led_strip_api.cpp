@@ -3,15 +3,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#include "enabled.h"
-
-#if FASTLED_ESP32_COMPONENT_LED_STRIP_BUILT_IN
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 
 #include "esp_log.h"
 #include "esp_check.h"
@@ -105,10 +96,3 @@ esp_err_t led_strip_del(led_strip_handle_t strip)
     ESP_RETURN_ON_FALSE(strip, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
     return strip->del(strip);
 }
-
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif // FASTLED_ESP32_COMPONENT_LED_STRIP_BUILT_IN

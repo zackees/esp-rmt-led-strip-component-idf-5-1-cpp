@@ -16,11 +16,6 @@
 #include "driver/rmt_types.h"
 #endif
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * @brief LED Strip RMT specific configuration
  */
@@ -51,8 +46,4 @@ typedef struct {
  */
 esp_err_t led_strip_new_rmt_device(const led_strip_config_t *led_config, const led_strip_rmt_config_t *rmt_config, led_strip_handle_t *ret_strip);
 
-
-#ifdef __cplusplus
-}
-#endif
 

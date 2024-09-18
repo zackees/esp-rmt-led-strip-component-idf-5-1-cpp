@@ -1,15 +1,8 @@
 
+#ifdef LED_STRIP_HAS_MAIN_H
+
 #include <Arduino.h>
 #include "led_strip/rmt_demo.h"
-
-#define TAG "dev.ino"
-
-void setup() {
-    Serial.begin(9600);
-    Serial.setDebugOutput(true);
-    esp_log_level_set("*", ESP_LOG_VERBOSE);
-    ESP_LOGI(TAG, "Start blinking LED strip");
-}
 
 // How many leds in your strip?
 #define NUM_LEDS 9
@@ -21,8 +14,22 @@ void setup() {
 // using hardware SPI
 #define DATA_PIN 9
 
+
+#define TAG "main.cpp"
+
+void setup() {
+    Serial.begin(9600);
+    Serial.setDebugOutput(true);
+    esp_log_level_set("*", ESP_LOG_VERBOSE);
+    ESP_LOGI(TAG, "Start blinking LED strip");
+}
+
+
+
 void loop() {
 
     rmt_demo(DATA_PIN, NUM_LEDS);
     delay(500);
 }
+
+#endif // _LED_STRIP_HAS_MAIN_H

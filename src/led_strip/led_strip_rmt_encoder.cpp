@@ -3,10 +3,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#include "enabled.h"
-#include <iostream>
 
-#if FASTLED_ESP32_COMPONENT_LED_STRIP_BUILT_IN
+#include <iostream>
 
 // enable fprmissive
 #pragma GCC diagnostic push
@@ -219,4 +217,4 @@ err:
 
 #pragma GCC diagnostic pop
 
-#endif // FASTLED_ESP32_COMPONENT_LED_STRIP_BUILT_IN
+

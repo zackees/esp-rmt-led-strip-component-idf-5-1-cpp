@@ -7,11 +7,6 @@
 
 #include <stdint.h>
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * @brief LED strip pixel format
  */
@@ -50,8 +45,3 @@ typedef struct {
         uint32_t invert_out: 1; /*!< Invert output signal */
     } flags;                    /*!< Extra driver flags */
 } led_strip_config_t;
-
-
-#ifdef __cplusplus
-}
-#endif

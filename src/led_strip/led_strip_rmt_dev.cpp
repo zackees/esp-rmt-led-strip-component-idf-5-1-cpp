@@ -4,14 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "enabled.h"
-
-#if FASTLED_ESP32_COMPONENT_LED_STRIP_BUILT_IN
-
-
-
-#include "esp_idf_version.h"
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 
 #include <stdlib.h>
 #include <string.h>
@@ -210,23 +202,5 @@ esp_err_t led_strip_new_rmt_device(const led_strip_config_t *led_config, const l
     *ret_strip = &rmt_strip->base;
     cleanup_if_failure.release();
     return ESP_OK;
-    #if 0
-err:
-    std::cout << "Error happened" << std::endl;
-    if (rmt_strip) {
-        if (rmt_strip->rmt_chan) {
-            rmt_del_channel(rmt_strip->rmt_chan);
-        }
-        if (rmt_strip->strip_encoder) {
-            rmt_del_encoder(rmt_strip->strip_encoder);
-        }
-        free(rmt_strip);
-    }
-    return ret;
-    #endif
 }
 
-
-#endif // ESP_IDF_VERSION
-
-#endif // FASTLED_ESP32_COMPONENT_LED_STRIP_BUILT_IN
