@@ -2,7 +2,8 @@
 #ifdef LED_STRIP_HAS_MAIN_H
 
 #include <Arduino.h>
-#include "led_strip/rmt_demo.h"
+#include "led_strip/demo.h"
+#include "led_strip/namespace.h"
 
 // How many leds in your strip?
 #define NUM_LEDS 9
@@ -17,6 +18,7 @@
 
 #define TAG "main.cpp"
 
+
 void setup() {
     Serial.begin(9600);
     Serial.setDebugOutput(true);
@@ -25,10 +27,8 @@ void setup() {
 }
 
 
-
 void loop() {
-
-    rmt_demo(DATA_PIN, NUM_LEDS);
+    led_strip::demo(DATA_PIN, NUM_LEDS);
     delay(500);
 }
 

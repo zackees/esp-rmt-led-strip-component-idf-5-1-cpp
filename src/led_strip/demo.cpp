@@ -1,13 +1,13 @@
 #include <Arduino.h>
 
 #include "led_strip/led_strip.h"
-#include "led_strip/rmt_demo.h"
+#include "led_strip/demo.h"
 #include "esp_log.h"
-
-#define TAG "rmt_demo.cpp"
 
 #include "namespace.h"
 LED_STRIP_NAMESPACE_BEGIN
+
+#define TAG "rmt_demo.cpp"
 
 led_strip_handle_t configure_led(int pin, uint32_t max_leds) {
     // LED strip general initialization, according to your led board design
@@ -83,7 +83,7 @@ void led_component_loop(int pin, uint32_t max_leds) {
 }
 
 
-void rmt_demo(int led_strip_gpio, uint32_t num_leds) {
+void demo(int led_strip_gpio, uint32_t num_leds) {
     // TODO: handle rmt_res_hz
     led_component_loop(led_strip_gpio, num_leds);
 }
