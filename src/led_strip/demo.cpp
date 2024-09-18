@@ -47,6 +47,20 @@ void convert_to_rgbw(uint8_t r, uint8_t g, uint8_t b, uint8_t* out_r, uint8_t* o
     *out_w = 0;
 }
 
+void set_pixel(led_strip_handle_t led_strip, uint32_t index, bool is_rgbw_active, uint8_t r, uint8_t g, uint8_t b) {
+    if (is_rgbw_active) {
+        uint8_t w = 0;
+        convert_to_rgbw(r, g, b, &r, &g, &b, &w);
+        ESP_ERROR_CHECK(led_strip_set_pixel_rgbw(led_strip, index, g, r, b, w));
+    } else {
+        ESP_ERROR_CHECK(led_strip_set_pixel(led_strip, index, g, r, b));
+    }
+}
+
+void draw_strip(led_strip_handle_t led_strip) {
+    ESP_ERROR_CHECK(led_strip_refresh(led_strip));
+}
+
 void draw_loop(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active) {
     const int MAX_BRIGHTNESS = 5;
     bool led_on_off = false;
@@ -59,18 +73,10 @@ void draw_loop(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active
             uint8_t g = MAX_BRIGHTNESS;
             uint8_t b = MAX_BRIGHTNESS;
             for (int i = 0; i < num_leds; i++) {
-                if (rgbw_active) {
-                    uint8_t w = 0;
-                    convert_to_rgbw(r, g, b, &r, &g, &b, &w);
-                    ESP_ERROR_CHECK(
-                        led_strip_set_pixel_rgbw(led_strip, i, r, g, b, w));
-                } else {
-                    ESP_ERROR_CHECK(
-                        led_strip_set_pixel(led_strip, i, r, g, b));
-                }
+                set_pixel(led_strip, i, rgbw_active, r, g, b);
             }
             /* Refresh the strip to send data */
-            ESP_ERROR_CHECK(led_strip_refresh(led_strip));
+            draw_strip(led_strip);
             ESP_LOGI(TAG, "LED ON!");
             vTaskDelay(pdMS_TO_TICKS(8));
         } else {
