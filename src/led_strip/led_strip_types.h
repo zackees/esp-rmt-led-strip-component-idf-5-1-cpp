@@ -7,6 +7,9 @@
 
 #include <stdint.h>
 
+#include "namespace.h"
+LED_STRIP_NAMESPACE_BEGIN
+
 /**
  * @brief LED strip pixel format
  */
@@ -45,3 +48,5 @@ typedef struct {
         uint32_t invert_out: 1; /*!< Invert output signal */
     } flags;                    /*!< Extra driver flags */
 } led_strip_config_t;
+
+LED_STRIP_NAMESPACE_END

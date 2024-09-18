@@ -6,6 +6,9 @@
 
 #define TAG "rmt_demo.cpp"
 
+#include "namespace.h"
+LED_STRIP_NAMESPACE_BEGIN
+
 led_strip_handle_t configure_led(int pin, uint32_t max_leds) {
     // LED strip general initialization, according to your led board design
     led_strip_config_t strip_config = {};
@@ -84,3 +87,6 @@ void rmt_demo(int led_strip_gpio, uint32_t num_leds) {
     // TODO: handle rmt_res_hz
     led_component_loop(led_strip_gpio, num_leds);
 }
+
+
+LED_STRIP_NAMESPACE_END

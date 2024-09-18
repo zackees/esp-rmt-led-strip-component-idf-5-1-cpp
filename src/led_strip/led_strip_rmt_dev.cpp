@@ -30,6 +30,9 @@
 
 #include "cleanup.h"
 
+#include "namespace.h"
+LED_STRIP_NAMESPACE_BEGIN
+
 // static const char *TAG = "led_strip_rmt";
 #define TAG "led_strip_rmt"
 
@@ -204,3 +207,4 @@ esp_err_t led_strip_new_rmt_device(const led_strip_config_t *led_config, const l
     return ESP_OK;
 }
 
+LED_STRIP_NAMESPACE_END

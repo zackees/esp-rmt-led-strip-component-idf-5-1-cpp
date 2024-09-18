@@ -17,6 +17,9 @@
 #include "led_strip_rmt_encoder.h"
 #include "cleanup.h"
 
+#include "namespace.h"
+LED_STRIP_NAMESPACE_BEGIN
+
 //static const char *TAG = "led_rmt_encoder";
 #define TAG "led_rmt_encoder"
 
@@ -218,3 +221,4 @@ err:
 #pragma GCC diagnostic pop
 
 
+LED_STRIP_NAMESPACE_END
