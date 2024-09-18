@@ -63,7 +63,7 @@ void draw_strip(led_strip_handle_t led_strip) {
     ESP_ERROR_CHECK(led_strip_refresh(led_strip));
 }
 
-void draw_color_cycle(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active) {
+void draw_loop_color_cycle(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active) {
     const int MAX_BRIGHTNESS = 64;
     const float SPEED = 0.05f;
     float time = 0.0f;
@@ -84,7 +84,7 @@ void draw_color_cycle(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw
     }
 }
 
-void draw_blink_on_off_white(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active) {
+void draw_loop_blink_on_off_white(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active) {
     const int MAX_BRIGHTNESS = 5;
     bool led_on_off = false;
     while (1) {
@@ -116,9 +116,9 @@ void draw_blink_on_off_white(led_strip_handle_t led_strip, uint32_t num_leds, bo
 void draw_loop(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active) {
 
     #ifdef DRAW_BLINK_DEMO
-    draw_blink_on_off_white(led_strip, num_leds, rgbw_active);
+    draw_loop_blink_on_off_white(led_strip, num_leds, rgbw_active);
     #else
-    draw_color_cycle(led_strip, num_leds, rgbw_active);
+    draw_loop_color_cycle(led_strip, num_leds, rgbw_active);
     #endif
 }
 
