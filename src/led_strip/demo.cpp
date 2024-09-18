@@ -38,6 +38,15 @@ bool is_rgbw_mode_active(led_pixel_format_t rgbw_mode) {
     return rgbw_mode == LED_PIXEL_FORMAT_GRBW;
 }
 
+void convert_to_rgbw(uint8_t r, uint8_t g, uint8_t b, uint8_t* out_r, uint8_t* out_g, uint8_t* out_b, uint8_t* out_w) {
+    // This is a simple conversion that just takes the average of the RGB values and assigns it to the W value.
+    // This is not a good conversion, but it is a simple one.
+    *out_r = r;
+    *out_g = g;
+    *out_b = b;
+    *out_w = 0;
+}
+
 void draw_loop(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active) {
     const int MAX_BRIGHTNESS = 5;
     bool led_on_off = false;
@@ -46,15 +55,18 @@ void draw_loop(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active
         if (led_on_off) {
             /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for each
              * color */
+            uint8_t r = MAX_BRIGHTNESS;
+            uint8_t g = MAX_BRIGHTNESS;
+            uint8_t b = MAX_BRIGHTNESS;
             for (int i = 0; i < num_leds; i++) {
-                // Yes, we are sending RGB instead of RGBW data, but something
-                // should still appear.
                 if (rgbw_active) {
+                    uint8_t w = 0;
+                    convert_to_rgbw(r, g, b, &r, &g, &b, &w);
                     ESP_ERROR_CHECK(
-                        led_strip_set_pixel_rgbw(led_strip, i, MAX_BRIGHTNESS, MAX_BRIGHTNESS, MAX_BRIGHTNESS, MAX_BRIGHTNESS));
+                        led_strip_set_pixel_rgbw(led_strip, i, r, g, b, w));
                 } else {
                     ESP_ERROR_CHECK(
-                        led_strip_set_pixel(led_strip, i, MAX_BRIGHTNESS, MAX_BRIGHTNESS, MAX_BRIGHTNESS));
+                        led_strip_set_pixel(led_strip, i, r, g, b));
                 }
             }
             /* Refresh the strip to send data */
