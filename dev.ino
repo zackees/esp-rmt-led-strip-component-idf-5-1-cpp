@@ -1,10 +1,39 @@
-#include "led_strip/led_strip.h"
-#include "led_strip/rmt_demo.h"
+
+#include "platforms/esp/32/led_strip/led_strip.h"
+#include "platforms/esp/32/led_strip/rmt_demo.h"
+#include <FastLED.h>
+#include <iostream>
+
+
+#include "rgbw.h"
+
+extern "C" {
 #include "esp_log.h"
+}
 
 
-#define TAG "rmt_demo.cpp"
 
+#define TAG "dev.ino"
+
+// How many leds in your strip?
+#define NUM_LEDS 9
+
+// For led chips like WS2812, which have a data line, ground, and power, you
+// just need to define DATA_PIN.  For led chipsets that are SPI based (four
+// wires - data, clock, ground, and power), like the LPD8806 define both
+// DATA_PIN and CLOCK_PIN Clock pin only needed for SPI based chipsets when not
+// using hardware SPI
+#define DATA_PIN 9
+
+// Define the array of leds
+CRGB leds[NUM_LEDS];
+
+void setup() {
+    Serial.begin(9600);
+    Serial.setDebugOutput(true);
+    esp_log_level_set("*", ESP_LOG_VERBOSE);
+    ESP_LOGI(TAG, "Start blinking LED strip");
+}
 
 led_strip_handle_t configure_led(int pin, uint32_t max_leds) {
     // LED strip general initialization, according to your led board design
@@ -78,7 +107,7 @@ void led_component_loop(int pin, uint32_t max_leds) {
         if (led_on_off) {
             /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for each
              * color */
-            for (int i = 0; i < max_leds; i++) {
+            for (int i = 0; i < NUM_LEDS; i++) {
                 // Yes, we are sending RGB instead of RGBW data, but something
                 // should still appear.
                 ESP_ERROR_CHECK(
@@ -99,7 +128,8 @@ void led_component_loop(int pin, uint32_t max_leds) {
     }
 }
 
+void loop() {
 
-void rmt_demo(int led_strip_gpio, uint32_t num_leds, uint32_t rmt_res_hz) {
-
+    led_component_loop(DATA_PIN, NUM_LEDS);
+    delay(500);
 }
