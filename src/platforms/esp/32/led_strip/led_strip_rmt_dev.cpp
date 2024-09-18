@@ -128,6 +128,8 @@ void delete_strip(led_strip_rmt_obj *rmt_strip) {
     }
 }
 
+// C++ doesn't like the goto statement, so we need to replace it with a macro to do an early return instead
+// This is a common pattern in the ESP-IDF codebase.
 #undef ESP_GOTO_ON_FALSE
 #undef ESP_GOTO_ON_ERROR
 
