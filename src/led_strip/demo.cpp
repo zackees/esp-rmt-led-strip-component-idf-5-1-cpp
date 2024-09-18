@@ -10,6 +10,8 @@ LED_STRIP_NAMESPACE_BEGIN
 
 #define TAG "rmt_demo.cpp"
 
+// #define DRAW_BLINK_DEMO
+
 void to_esp_modes(LedStripMode mode, led_model_t* out_chipset, led_pixel_format_t* out_rgbw) {
     switch (mode) {
         case WS2812:
@@ -66,9 +68,7 @@ void draw_color_cycle(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw
     const float SPEED = 0.05f;
     float time = 0.0f;
 
-    while (1) {
-        ESP_LOGI(TAG, "Looping");
-        
+    while (1) {        
         for (int i = 0; i < num_leds; i++) {
             float hue = fmodf(time + (float)i / num_leds, 1.0f);
             
@@ -78,10 +78,8 @@ void draw_color_cycle(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw
             
             set_pixel(led_strip, i, rgbw_active, r, g, b);
         }
-        
         draw_strip(led_strip);
-        ESP_LOGI(TAG, "Color cycle updated");
-        
+
         time += SPEED;
     }
 }
@@ -116,11 +114,12 @@ void draw_blink_on_off_white(led_strip_handle_t led_strip, uint32_t num_leds, bo
 }
 
 void draw_loop(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active) {
-    if (true) {
-        draw_color_cycle(led_strip, num_leds, rgbw_active);
-    } else {
-        draw_blink_on_off_white(led_strip, num_leds, rgbw_active);
-    }
+
+    #ifdef DRAW_BLINK_DEMO
+    draw_blink_on_off_white(led_strip, num_leds, rgbw_active);
+    #else
+    draw_color_cycle(led_strip, num_leds, rgbw_active);
+    #endif
 }
 
 void demo(int led_strip_gpio, uint32_t num_leds, LedStripMode mode) {
