@@ -1,6 +1,6 @@
 #pragma once
 
-#include "led_strip/led_strip.h"
+#include "led_strip.h"
 #include "namespace.h"
 
 LED_STRIP_NAMESPACE_BEGIN
