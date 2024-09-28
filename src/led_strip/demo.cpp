@@ -43,10 +43,14 @@ bool is_rgbw_mode_active(led_pixel_format_t rgbw_mode) {
 void convert_to_rgbw(uint8_t r, uint8_t g, uint8_t b, uint8_t* out_r, uint8_t* out_g, uint8_t* out_b, uint8_t* out_w) {
     // This is a simple conversion that just takes the average of the RGB values and assigns it to the W value.
     // This is not a good conversion, but it is a simple one.
+    uint8_t w = max(r, max(g, b));
+    r = r - w;
+    g = g - w;
+    b = b - w;
     *out_r = r;
     *out_g = g;
     *out_b = b;
-    *out_w = 0;
+    *out_w = w;
 }
 
 void set_pixel(led_strip_handle_t led_strip, uint32_t index, bool is_rgbw_active, uint8_t r, uint8_t g, uint8_t b) {
