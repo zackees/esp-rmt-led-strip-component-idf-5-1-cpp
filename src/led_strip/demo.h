@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "led_strip_types.h"
+#include "led_strip/rmt_strip.h"
 
 
 enum LedStripMode {
@@ -17,6 +18,7 @@ class ColorCycle {
 public:
     ColorCycle(uint32_t num_leds, bool rgb_active): mNumLeds(num_leds), mRgbwActive(rgb_active) {}
     void draw_loop(led_strip_handle_t led_strip);
+    void draw_loop(IRmtLedStrip* led_strip);
 private:
     uint32_t mNumLeds;
     bool mRgbwActive;

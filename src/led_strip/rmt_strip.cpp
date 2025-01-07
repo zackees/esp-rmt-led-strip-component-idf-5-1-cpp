@@ -10,7 +10,6 @@
 #include "construct.h"
 #include "esp_check.h"
 
-#include "rmt_strip_group.h"
 #include "fl/warn.h"
 
 
@@ -56,29 +55,21 @@ public:
         const uint8_t bytes_per_pixel = is_rgbw ? 4 : 3;
         mBuffer = static_cast<uint8_t*>(calloc(max_leds, bytes_per_pixel));
         // Unlike it's recycling counterpart, we acquire the RMT channel here.
-        acquire_rmt_if_necessary();
+        init();
     }
 
-    void acquire_rmt_if_necessary() {
+    void init() {
         esp_err_t err = construct_led_strip(
             mT0H, mT0L, mT1H, mT1L, mTRESET,
             mPin, mMaxLeds, mIsRgbw, mBuffer,
             &mLedStrip);
 
         if (err == ESP_OK) {
-            RmtActiveStripGroup::instance().add(this);
             return;
         }
 
         if (err == ESP_ERR_NOT_FOUND) {  // No free RMT channels yet.
-            int active_strips = RmtActiveStripGroup::instance().count_active();
-            if (active_strips == 0) {
-                // If there are no active strips and we don't have any resources then
-                // this means RMT is not supported on this platform so we just abort.
-                ESP_ERROR_CHECK(err);
-            }
             // Update the total number of active strips allowed.
-            RmtActiveStripGroup::instance().set_total_allowed(active_strips);
             mError = true;
             // FASTLED_WARN("All available RMT channels are in use, and no more can be allocated.");
             // ESP_LOGE("All available RMT channels are in use, failed to allocate RMT driver on pin: " << mPin << ".");
@@ -96,8 +87,6 @@ public:
             mLedStrip->del(mLedStrip, false);
             mLedStrip = nullptr;
         }
-
-        RmtActiveStripGroup::instance().remove(this);
         free(mBuffer);
     }
 
@@ -184,7 +173,7 @@ private:
 IRmtLedStrip* create_rmt_led_strip(
         uint16_t T0H, uint16_t T0L, uint16_t T1H, uint16_t T1L, uint32_t TRESET, // Timing is in nanoseconds
         int pin, uint32_t max_leds, bool is_rgbw){
-    return nullptr;
+    return new RmtLedStripNoRecycle(T0H, T0L, T1H, T1L, TRESET, pin, max_leds, is_rgbw);
 }
 
 #endif  // FASTLED_RMT5

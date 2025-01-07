@@ -133,6 +133,27 @@ void ColorCycle::draw_loop(led_strip_handle_t led_strip) {
     ESP_ERROR_CHECK(led_strip_refresh_async(led_strip));
 }
 
+void ColorCycle::draw_loop(IRmtLedStrip* led_strip) {
+    led_strip->wait_for_draw_complete();
+    const int MAX_BRIGHTNESS = 64;
+    uint32_t now = millis();
+    double now_f = now / 1000.0;
+
+    bool toggle = millis() / 500 % 2;
+    uint8_t r = toggle ? MAX_BRIGHTNESS : 0;
+    uint8_t g = toggle ? 0 : MAX_BRIGHTNESS;
+    uint8_t b = 0;
+    for (int i = 0; i < mNumLeds; i++) {
+        // float hue = fmodf(now_f + (float)i / num_pixels(), 1.0f);
+        // float r = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 0.0f / 3.0f)));
+        // float g = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 1.0f / 3.0f)));
+        // float b = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 2.0f / 3.0f)));
+        // set_pixel(i, r, g, b);
+        // set_pixel(i, r, g, b);
+        led_strip->set_pixel(i, r, g, b);
+    }
+    led_strip->draw();
+}
 
 void draw_loop(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active) {
     ESP_LOGE(TAG, "LOOP!");

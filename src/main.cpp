@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include "led_strip/demo.h"
 #include "led_strip/construct.h"
+#include "led_strip/rmt_strip.h"
 
 // How many leds in your strip?
 #define NUM_LEDS 256
@@ -20,6 +21,11 @@
 
 #define TAG "main.cpp"
 
+IRmtLedStrip* strip = nullptr;
+IRmtLedStrip* strip2 = nullptr;
+
+
+
 
 void setup() {
     Serial.begin(9600);
@@ -27,10 +33,12 @@ void setup() {
     esp_log_level_set("*", ESP_LOG_VERBOSE);
     delay(1000);
     ESP_LOGI(TAG, "Start blinking LED strip");
+    strip = create_rmt_led_strip(350, 800, 700, 600, 30000, PIN1, NUM_LEDS, false);
+    strip2 = create_rmt_led_strip(350, 800, 700, 600, 30000, PIN2, NUM_LEDS, false);
 }
 
 
-void demo(int pin1, int pin2, uint32_t num_leds, LedStripMode mode) {
+void demo_low_level_api(int pin1, int pin2, uint32_t num_leds, LedStripMode mode) {
     led_pixel_format_t rgbw_mode = {};
     led_model_t chipset = {};
     to_esp_modes(mode, &chipset, &rgbw_mode);
@@ -87,6 +95,21 @@ void demo(int pin1, int pin2, uint32_t num_leds, LedStripMode mode) {
     }
 }
 
+void demo_high_level_api(int pin1, int pin2, uint32_t num_leds, LedStripMode mode) {
+    led_pixel_format_t rgbw_mode = {};
+    led_model_t chipset = {};
+    to_esp_modes(mode, &chipset, &rgbw_mode);
+    const bool is_rgbw_active = is_rgbw_mode_active(rgbw_mode);
+    ColorCycle color_cycle(num_leds, is_rgbw_active);
+    while (1) {
+        uint32_t start = millis();
+        color_cycle.draw_loop(strip);
+        color_cycle.draw_loop(strip2);
+        uint32_t diff = millis() - start;
+        ESP_LOGE(TAG, "Time to draw: %d", diff);
+    }
+}
+
 void loop() {
-    demo(PIN1, PIN2, NUM_LEDS, WS2812);
+    demo_high_level_api(PIN1, PIN2, NUM_LEDS, WS2812);
 }
