@@ -1,5 +1,5 @@
 
-#ifdef LED_STRIP_HAS_MAIN_H
+
 
 #include <Arduino.h>
 #include "led_strip/demo.h"
@@ -12,7 +12,7 @@
 // wires - data, clock, ground, and power), like the LPD8806 define both
 // DATA_PIN and CLOCK_PIN Clock pin only needed for SPI based chipsets when not
 // using hardware SPI
-#define DATA_PIN 9
+#define DATA_PIN 6
 
 
 #define TAG "main.cpp"
@@ -22,13 +22,13 @@ void setup() {
     Serial.begin(9600);
     Serial.setDebugOutput(true);
     esp_log_level_set("*", ESP_LOG_VERBOSE);
+    delay(5000);
     ESP_LOGI(TAG, "Start blinking LED strip");
 }
 
 
 void loop() {
-    demo(DATA_PIN, NUM_LEDS, WS2812_RGBW);
+    demo(DATA_PIN, NUM_LEDS, WS2812);
+    ESP_LOGE(TAG, "LOOP!");
     delay(500);
 }
-
-#endif // _LED_STRIP_HAS_MAIN_H

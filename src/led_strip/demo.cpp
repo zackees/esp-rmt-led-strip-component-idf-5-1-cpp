@@ -73,20 +73,16 @@ void draw_loop_color_cycle(led_strip_handle_t led_strip, uint32_t num_leds, bool
     const int MAX_BRIGHTNESS = 64;
     const float SPEED = 0.05f;
     float time = 0.0f;
-
-    while (1) {        
+    while (1) {      
         for (int i = 0; i < num_leds; i++) {
             float hue = fmodf(time + (float)i / num_leds, 1.0f);
-            
             float r = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 0.0f / 3.0f)));
             float g = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 1.0f / 3.0f)));
             float b = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 2.0f / 3.0f)));
-            
             set_pixel(led_strip, i, rgbw_active, r, g, b);
         }
         ESP_ERROR_CHECK(led_strip_refresh_async(led_strip));
         ESP_ERROR_CHECK(led_strip_wait_refresh_done(led_strip, portMAX_DELAY, true));
-
         time += SPEED;
     }
 }
@@ -121,7 +117,7 @@ void draw_loop_blink_on_off_white(led_strip_handle_t led_strip, uint32_t num_led
 }
 
 void draw_loop(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active) {
-
+    ESP_LOGE(TAG, "LOOP!");
     #ifdef DRAW_BLINK_DEMO
     draw_loop_blink_on_off_white(led_strip, num_leds, rgbw_active);
     #else
