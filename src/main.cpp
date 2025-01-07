@@ -5,7 +5,7 @@
 #include "led_strip/demo.h"
 
 // How many leds in your strip?
-#define NUM_LEDS 9
+#define NUM_LEDS 16
 
 // For led chips like WS2812, which have a data line, ground, and power, you
 // just need to define DATA_PIN.  For led chipsets that are SPI based (four
@@ -22,7 +22,7 @@ void setup() {
     Serial.begin(9600);
     Serial.setDebugOutput(true);
     esp_log_level_set("*", ESP_LOG_VERBOSE);
-    delay(5000);
+    delay(1000);
     ESP_LOGI(TAG, "Start blinking LED strip");
 }
 
