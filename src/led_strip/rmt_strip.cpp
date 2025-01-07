@@ -39,16 +39,153 @@
     }
 
 
-IRmtLedStrip* create_rmt_led_strip_no_recycle(
+
+// No recycle version of the RMT driver.
+class RmtLedStripNoRecycle : public IRmtLedStrip {
+public:
+    RmtLedStripNoRecycle(uint16_t T0H, uint16_t T0L, uint16_t T1H, uint16_t T1L, uint32_t TRESET,
+                int pin, uint32_t max_leds, bool is_rgbw)
+        : mPin(pin),
+          mIsRgbw(is_rgbw),
+          mMaxLeds(max_leds),
+          mT0H(T0H),
+          mT0L(T0L),
+          mT1H(T1H),
+          mT1L(T1L),
+          mTRESET(TRESET) {
+        const uint8_t bytes_per_pixel = is_rgbw ? 4 : 3;
+        mBuffer = static_cast<uint8_t*>(calloc(max_leds, bytes_per_pixel));
+        // Unlike it's recycling counterpart, we acquire the RMT channel here.
+        acquire_rmt_if_necessary();
+    }
+
+    void acquire_rmt_if_necessary() {
+        esp_err_t err = construct_led_strip(
+            mT0H, mT0L, mT1H, mT1L, mTRESET,
+            mPin, mMaxLeds, mIsRgbw, mBuffer,
+            &mLedStrip);
+
+        if (err == ESP_OK) {
+            RmtActiveStripGroup::instance().add(this);
+            return;
+        }
+
+        if (err == ESP_ERR_NOT_FOUND) {  // No free RMT channels yet.
+            int active_strips = RmtActiveStripGroup::instance().count_active();
+            if (active_strips == 0) {
+                // If there are no active strips and we don't have any resources then
+                // this means RMT is not supported on this platform so we just abort.
+                ESP_ERROR_CHECK(err);
+            }
+            // Update the total number of active strips allowed.
+            RmtActiveStripGroup::instance().set_total_allowed(active_strips);
+            mError = true;
+            // FASTLED_WARN("All available RMT channels are in use, and no more can be allocated.");
+            // ESP_LOGE("All available RMT channels are in use, failed to allocate RMT driver on pin: " << mPin << ".");
+            ESP_LOGE(TAG, "All available RMT channels are in use, failed to allocate RMT driver on pin: %d.", mPin);
+            return;
+        }
+        // Some other error that we can't handle.
+
+        ESP_LOGE(TAG, "construct_led_strip failed because of unexpected error, is DMA not supported on this device?: %s", esp_err_to_name(err));
+        ESP_ERROR_CHECK(err);
+    }
+
+    virtual ~RmtLedStripNoRecycle() override {
+        if (mLedStrip) {
+            mLedStrip->del(mLedStrip, false);
+            mLedStrip = nullptr;
+        }
+
+        RmtActiveStripGroup::instance().remove(this);
+        free(mBuffer);
+    }
+
+    virtual void set_pixel(uint32_t i, uint8_t r, uint8_t g, uint8_t b) override {
+        RMT_ASSERT_LT(i, mMaxLeds);
+        RMT_ASSERT(!mIsRgbw);
+        uint8_t* pixel = &mBuffer[i * 3];
+        pixel[0] = r;
+        pixel[1] = g;
+        pixel[2] = b;
+    }
+
+    virtual void set_pixel_rgbw(uint32_t i, uint8_t r, uint8_t g, uint8_t b, uint8_t w) override {
+        RMT_ASSERT_LT(i, mMaxLeds);
+        RMT_ASSERT(mIsRgbw);
+        uint8_t* pixel = &mBuffer[i * 4];
+        pixel[0] = r;
+        pixel[1] = g;
+        pixel[2] = b;
+        pixel[3] = w;
+    }
+
+    void draw_and_wait_for_completion() {
+        draw_async();
+        wait_for_draw_complete();
+    }
+
+    void draw_async() {
+        FASTLED_WARN("draw_async called");
+        if (mError) {
+            FASTLED_WARN("draw_async called but mError is true");
+            return;
+        }
+        ESP_ERROR_CHECK(led_strip_refresh_async(mLedStrip));
+        mDrawn = true;
+    }
+
+    virtual void draw() override {
+        if (mError) {
+            FASTLED_WARN("draw called but mError is true");
+            return;
+        }
+        FASTLED_WARN_IF(!mDrawing, "draw called while already drawing");
+        if (mDrawing) {
+            return;
+        }
+        draw_async();
+        mDrawing = true;
+    }
+
+    virtual void wait_for_draw_complete() override {
+        if (!mDrawing) {
+            return;
+        }
+        if (mError) {
+            FASTLED_WARN("wait_for_draw_complete called but mError is true");
+            return;
+        }
+        led_strip_wait_refresh_done(mLedStrip, -1);
+        mDrawing = false;
+    }
+
+    virtual uint32_t num_pixels() const {
+        return mMaxLeds;
+    }
+
+private:
+    int mPin = -1;
+    led_strip_handle_t mLedStrip = nullptr;
+    bool mIsRgbw = false;
+    uint32_t mMaxLeds = 0;
+    uint8_t* mBuffer = nullptr;
+    uint16_t mT0H = 0;
+    uint16_t mT0L = 0;
+    uint16_t mT1H = 0;
+    uint16_t mT1L = 0;
+    uint32_t mTRESET = 0;
+    bool mDrawn = false;
+    bool mDrawing = false;
+    bool mError = false;
+};
+
+
+IRmtLedStrip* create_rmt_led_strip(
         uint16_t T0H, uint16_t T0L, uint16_t T1H, uint16_t T1L, uint32_t TRESET, // Timing is in nanoseconds
         int pin, uint32_t max_leds, bool is_rgbw){
     return nullptr;
 }
-
-IRmtLedStrip* create_rmt_led_strip_deprecated(uint16_t T0H, uint16_t T0L, uint16_t T1H, uint16_t T1L, uint32_t TRESET, int pin, uint32_t max_leds, bool is_rgbw) {
-    return nullptr;
-}
-
 
 #endif  // FASTLED_RMT5
 
