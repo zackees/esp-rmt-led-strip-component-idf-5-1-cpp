@@ -22,4 +22,11 @@ private:
     bool mRgbwActive;
 };
 
-void demo(uint32_t num_leds, LedStripMode mode);
+// void demo(int pin1, int pin2, uint32_t num_leds, LedStripMode mode);
+
+
+void to_esp_modes(LedStripMode mode, led_model_t* out_chipset, led_pixel_format_t* out_rgbw);
+
+inline bool is_rgbw_mode_active(led_pixel_format_t rgbw_mode) {
+    return rgbw_mode == LED_PIXEL_FORMAT_GRBW;
+}

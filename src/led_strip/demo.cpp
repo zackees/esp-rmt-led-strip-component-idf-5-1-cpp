@@ -42,9 +42,7 @@ void to_esp_modes(LedStripMode mode, led_model_t* out_chipset, led_pixel_format_
     }
 }
 
-bool is_rgbw_mode_active(led_pixel_format_t rgbw_mode) {
-    return rgbw_mode == LED_PIXEL_FORMAT_GRBW;
-}
+
 
 void convert_to_rgbw(uint8_t r, uint8_t g, uint8_t b, uint8_t* out_r, uint8_t* out_g, uint8_t* out_b, uint8_t* out_w) {
     // This is a simple conversion that just takes the average of the RGB values and assigns it to the W value.
@@ -71,7 +69,7 @@ void set_pixel(led_strip_handle_t led_strip, uint32_t index, bool is_rgbw_active
 
 void draw_strip(led_strip_handle_t led_strip) {
     ESP_ERROR_CHECK(led_strip_refresh_async(led_strip));
-    ESP_ERROR_CHECK(led_strip_wait_refresh_done(led_strip, portMAX_DELAY, false));
+    ESP_ERROR_CHECK(led_strip_wait_refresh_done(led_strip, -1));
 }
 
 
@@ -113,18 +111,26 @@ void draw_loop_blink_on_off_white(led_strip_handle_t led_strip, uint32_t num_led
 
 
 void ColorCycle::draw_loop(led_strip_handle_t led_strip) {
+    ESP_ERROR_CHECK(led_strip_wait_refresh_done(led_strip, -1));
     const int MAX_BRIGHTNESS = 64;
     uint32_t now = millis();
     double now_f = now / 1000.0;
 
+    bool toggle = millis() / 500 % 2;
+    uint8_t r = toggle ? MAX_BRIGHTNESS : 0;
+    uint8_t g = toggle ? 0 : MAX_BRIGHTNESS;
+    uint8_t b = 0;
+
     for (int i = 0; i < mNumLeds; i++) {
-        float hue = fmodf(now_f + (float)i / mNumLeds, 1.0f);
-        float r = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 0.0f / 3.0f)));
-        float g = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 1.0f / 3.0f)));
-        float b = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 2.0f / 3.0f)));
+        // float hue = fmodf(now_f + (float)i / mNumLeds, 1.0f);
+        // float r = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 0.0f / 3.0f)));
+        // float g = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 1.0f / 3.0f)));
+        // float b = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 2.0f / 3.0f)));
+        // set_pixel(led_strip, i, mRgbwActive, r, g, b);
+
         set_pixel(led_strip, i, mRgbwActive, r, g, b);
     }
-    draw_strip(led_strip);
+    ESP_ERROR_CHECK(led_strip_refresh_async(led_strip));
 }
 
 
@@ -158,61 +164,4 @@ void draw_loop(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active
 // Min: 0.45 µs
 // Max: 0.8 µs
 
-void demo(uint32_t num_leds, LedStripMode mode) {
-    led_pixel_format_t rgbw_mode = {};
-    led_model_t chipset = {};
-    to_esp_modes(mode, &chipset, &rgbw_mode);
-    const bool is_rgbw_active = is_rgbw_mode_active(rgbw_mode);
-
-
-    // const uint16_t T0H = 35;
-    // const uint16_t T0L = 80;
-    // const uint16_t T1H = 70;
-    // const uint16_t T1L = 60;
-    // const uint32_t TRESET = 30000;  # nano seconds
-    const uint16_t T0H = 350;
-    const uint16_t T0L = 800;
-    const uint16_t T1H = 700;
-    const uint16_t T1L = 600;
-    const uint32_t TRESET = 30000;  // nano seconds
-    rmt_symbol_word_t reset;
-
-    rmt_bytes_encoder_config_t bytes_encoder_config = make_encoder_config(
-        T0H, T0L, T1H, T1L, TRESET, &reset);
-
-    config_led_t led_strip_config = {
-        .pin = 6,
-        .max_leds = num_leds,
-        .rgbw = is_rgbw_active,
-        .rmt_bytes_encoder_config = bytes_encoder_config,
-        .reset_code = reset,
-    };
-
-    config_led_t led_strip_config2 = {
-        .pin = 1,
-        .max_leds = num_leds,
-        .rgbw = is_rgbw_active,
-        .rmt_bytes_encoder_config = bytes_encoder_config,
-        .reset_code = reset,
-    };
-
-    //make_led_config(led_strip_gpio, num_leds, chipset, rgbw_mode, &led_strip_config);
-    // make_led_config(T0H, T0L, T1H, T1L, TRESET, led_strip_gpio, num_leds, is_rgbw_active, nullptr);
-    // construct_new_led_strip(led_strip_gpio, num_leds, chipset, rgbw_mode);
-    led_strip_handle_t led_strip = 0;
-    construct_new_led_strip(led_strip_config, &led_strip);
-
-    led_strip_handle_t led_strip2 = 0;
-    construct_new_led_strip(led_strip_config, &led_strip2);
-
-
-    
-
-    ColorCycle color_cycle(num_leds, is_rgbw_active);
-    while (1) {
-        color_cycle.draw_loop(led_strip);
-        color_cycle.draw_loop(led_strip2);
-    }
-
-}
 
