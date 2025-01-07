@@ -13,6 +13,26 @@
 
 // #define DRAW_BLINK_DEMO
 
+
+
+
+void ColorCycle::draw_loop(led_strip_handle_t led_strip) {
+    const int MAX_BRIGHTNESS = 64;
+    uint32_t now = millis();
+    double now_f = now / 1000.0;
+
+    for (int i = 0; i < mNumLeds; i++) {
+        float hue = fmodf(now_f + (float)i / mNumLeds, 1.0f);
+        float r = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 0.0f / 3.0f)));
+        float g = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 1.0f / 3.0f)));
+        float b = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 2.0f / 3.0f)));
+        set_pixel(led_strip, i, mRgbwActive, r, g, b);
+    }
+    draw_strip(led_strip);
+}
+
+
+
 void to_esp_modes(LedStripMode mode, led_model_t* out_chipset, led_pixel_format_t* out_rgbw) {
     switch (mode) {
         case WS2812:
@@ -69,30 +89,6 @@ void draw_strip(led_strip_handle_t led_strip) {
     ESP_ERROR_CHECK(led_strip_wait_refresh_done(led_strip, portMAX_DELAY, true));
 }
 
-
-class ColorCycle {
-public:
-    ColorCycle(uint32_t num_leds, bool rgb_active): mNumLeds(num_leds), mRgbwActive(rgb_active) {}
-
-    void draw_loop(led_strip_handle_t led_strip) {
-        const int MAX_BRIGHTNESS = 64;
-        uint32_t now = millis();
-        double now_f = now / 1000.0;
-
-        for (int i = 0; i < mNumLeds; i++) {
-            float hue = fmodf(now_f + (float)i / mNumLeds, 1.0f);
-            float r = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 0.0f / 3.0f)));
-            float g = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 1.0f / 3.0f)));
-            float b = MAX_BRIGHTNESS * (0.5f + 0.5f * std::sin(2 * PI * (hue + 2.0f / 3.0f)));
-            set_pixel(led_strip, i, mRgbwActive, r, g, b);
-        }
-        draw_strip(led_strip);
-    }
-
-private:
-    uint32_t mNumLeds;
-    bool mRgbwActive;
-};
 
 void draw_loop_color_cycle(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active) {
     ColorCycle color_cycle(num_leds, rgbw_active);
@@ -196,6 +192,11 @@ void demo(int led_strip_gpio, uint32_t num_leds, LedStripMode mode) {
     // construct_new_led_strip(led_strip_gpio, num_leds, chipset, rgbw_mode);
     led_strip_handle_t led_strip = 0;
     construct_new_led_strip(led_strip_config, &led_strip);
-    draw_loop(led_strip, num_leds, is_rgbw_active);
+
+    ColorCycle color_cycle(num_leds, is_rgbw_active);
+    while (1) {
+        color_cycle.draw_loop(led_strip);
+    }
+
 }
 
