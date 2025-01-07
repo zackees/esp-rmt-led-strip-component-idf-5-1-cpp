@@ -71,7 +71,7 @@ static esp_err_t led_strip_rmt_refresh_async(led_strip_t *strip)
     rmt_transmit_config_t tx_conf = {
         .loop_count = 0,
     };
-    if (!rmt_strip->enabled) {
+    if (false) {
         ESP_RETURN_ON_ERROR(rmt_enable(rmt_strip->rmt_chan), TAG, "enable RMT channel failed");
     }
     ESP_RETURN_ON_ERROR(rmt_transmit(rmt_strip->rmt_chan, rmt_strip->strip_encoder, rmt_strip->pixel_buf,
@@ -259,6 +259,12 @@ esp_err_t led_strip_new_rmt_device_with_buffer(
         // We failed but we didn't allocate from the heap yet, so we can just return the error.
         ret_strip = nullptr;
         return err;
+    }
+    //ESP_RETURN_ON_ERROR(rmt_enable(rmt_strip->rmt_chan), TAG, "enable RMT channel failed");
+    err = rmt_enable(rmt_obj_tmp.rmt_chan);
+    if (err != ESP_OK) {
+        // Some other error occurred.
+        ESP_RETURN_ON_ERROR(err, err, TAG, "enable RMT channel failed");
     }
     // Some other error occurred.
     ESP_RETURN_ON_ERROR(err, err, TAG, "create RMT channel failed");

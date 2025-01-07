@@ -22,4 +22,4 @@ private:
     bool mRgbwActive;
 };
 
-void demo(int led_strip_gpio, uint32_t num_leds, LedStripMode mode);
+void demo(uint32_t num_leds, LedStripMode mode);

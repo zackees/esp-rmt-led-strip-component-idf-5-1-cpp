@@ -71,7 +71,7 @@ void set_pixel(led_strip_handle_t led_strip, uint32_t index, bool is_rgbw_active
 
 void draw_strip(led_strip_handle_t led_strip) {
     ESP_ERROR_CHECK(led_strip_refresh_async(led_strip));
-    ESP_ERROR_CHECK(led_strip_wait_refresh_done(led_strip, portMAX_DELAY, true));
+    ESP_ERROR_CHECK(led_strip_wait_refresh_done(led_strip, portMAX_DELAY, false));
 }
 
 
@@ -158,7 +158,7 @@ void draw_loop(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active
 // Min: 0.45 µs
 // Max: 0.8 µs
 
-void demo(int led_strip_gpio, uint32_t num_leds, LedStripMode mode) {
+void demo(uint32_t num_leds, LedStripMode mode) {
     led_pixel_format_t rgbw_mode = {};
     led_model_t chipset = {};
     to_esp_modes(mode, &chipset, &rgbw_mode);
@@ -181,7 +181,7 @@ void demo(int led_strip_gpio, uint32_t num_leds, LedStripMode mode) {
         T0H, T0L, T1H, T1L, TRESET, &reset);
 
     config_led_t led_strip_config = {
-        .pin = led_strip_gpio,
+        .pin = 6,
         .max_leds = num_leds,
         .rgbw = is_rgbw_active,
         .rmt_bytes_encoder_config = bytes_encoder_config,
@@ -203,7 +203,10 @@ void demo(int led_strip_gpio, uint32_t num_leds, LedStripMode mode) {
     construct_new_led_strip(led_strip_config, &led_strip);
 
     led_strip_handle_t led_strip2 = 0;
-    construct_new_led_strip(led_strip_config, &led_strip);
+    construct_new_led_strip(led_strip_config, &led_strip2);
+
+
+    
 
     ColorCycle color_cycle(num_leds, is_rgbw_active);
     while (1) {
