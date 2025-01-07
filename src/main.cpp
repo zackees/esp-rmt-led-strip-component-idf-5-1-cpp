@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include "led_strip/demo.h"
-#include "led_strip/namespace.h"
 
 // How many leds in your strip?
 #define NUM_LEDS 9
@@ -28,7 +27,7 @@ void setup() {
 
 
 void loop() {
-    led_strip::demo(DATA_PIN, NUM_LEDS, led_strip::WS2812_RGBW);
+    demo(DATA_PIN, NUM_LEDS, WS2812_RGBW);
     delay(500);
 }
 

@@ -5,8 +5,9 @@
 #include "esp_log.h"
 #include "configure_led.h"
 
-#include "namespace.h"
-LED_STRIP_NAMESPACE_BEGIN
+#include "construct.h"
+
+
 
 #define TAG "rmt_demo.cpp"
 
@@ -64,7 +65,8 @@ void set_pixel(led_strip_handle_t led_strip, uint32_t index, bool is_rgbw_active
 }
 
 void draw_strip(led_strip_handle_t led_strip) {
-    ESP_ERROR_CHECK(led_strip_refresh(led_strip));
+    ESP_ERROR_CHECK(led_strip_refresh_async(led_strip));
+    ESP_ERROR_CHECK(led_strip_wait_refresh_done(led_strip, portMAX_DELAY, true));
 }
 
 void draw_loop_color_cycle(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active) {
@@ -82,7 +84,8 @@ void draw_loop_color_cycle(led_strip_handle_t led_strip, uint32_t num_leds, bool
             
             set_pixel(led_strip, i, rgbw_active, r, g, b);
         }
-        draw_strip(led_strip);
+        ESP_ERROR_CHECK(led_strip_refresh_async(led_strip));
+        ESP_ERROR_CHECK(led_strip_wait_refresh_done(led_strip, portMAX_DELAY, true));
 
         time += SPEED;
     }
@@ -126,14 +129,63 @@ void draw_loop(led_strip_handle_t led_strip, uint32_t num_leds, bool rgbw_active
     #endif
 }
 
+// T0H (Time for logic '0' high):
+
+// Typical: 0.35 µs
+// Min: 0.2 µs
+// Max: 0.5 µs
+// T0L (Time for logic '0' low):
+
+// Typical: 0.8 µs
+// Min: 0.65 µs
+// Max: 0.95 µs
+// T1H (Time for logic '1' high):
+
+// Typical: 0.7 µs
+// Min: 0.55 µs
+// Max: 0.9 µs
+// T1L (Time for logic '1' low):
+
+// Typical: 0.6 µs
+// Min: 0.45 µs
+// Max: 0.8 µs
+
 void demo(int led_strip_gpio, uint32_t num_leds, LedStripMode mode) {
     led_pixel_format_t rgbw_mode = {};
     led_model_t chipset = {};
     to_esp_modes(mode, &chipset, &rgbw_mode);
     const bool is_rgbw_active = is_rgbw_mode_active(rgbw_mode);
-    led_strip_handle_t led_strip = configure_led(led_strip_gpio, num_leds, chipset, rgbw_mode);
+
+
+    // const uint16_t T0H = 35;
+    // const uint16_t T0L = 80;
+    // const uint16_t T1H = 70;
+    // const uint16_t T1L = 60;
+    // const uint32_t TRESET = 30000;  # nano seconds
+    const uint16_t T0H = 350;
+    const uint16_t T0L = 800;
+    const uint16_t T1H = 700;
+    const uint16_t T1L = 600;
+    const uint32_t TRESET = 30000;  // nano seconds
+    rmt_symbol_word_t reset;
+
+    rmt_bytes_encoder_config_t bytes_encoder_config = make_encoder_config(
+        T0H, T0L, T1H, T1L, TRESET, &reset);
+
+    config_led_t led_strip_config = {
+        .pin = led_strip_gpio,
+        .max_leds = num_leds,
+        .rgbw = is_rgbw_active,
+        .rmt_bytes_encoder_config = bytes_encoder_config,
+        .reset_code = reset,
+    };
+
+
+    //make_led_config(led_strip_gpio, num_leds, chipset, rgbw_mode, &led_strip_config);
+    // make_led_config(T0H, T0L, T1H, T1L, TRESET, led_strip_gpio, num_leds, is_rgbw_active, nullptr);
+    // construct_new_led_strip(led_strip_gpio, num_leds, chipset, rgbw_mode);
+    led_strip_handle_t led_strip = 0;
+    construct_new_led_strip(led_strip_config, &led_strip);
     draw_loop(led_strip, num_leds, is_rgbw_active);
 }
 
-
-LED_STRIP_NAMESPACE_END

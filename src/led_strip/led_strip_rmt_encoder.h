@@ -9,15 +9,15 @@
 #include "led_strip_types.h"
 #include "driver/rmt_encoder.h"
 
-#include "namespace.h"
-LED_STRIP_NAMESPACE_BEGIN
+
 
 /**
  * @brief Type of led strip encoder configuration
  */
 typedef struct {
     uint32_t resolution;   /*!< Encoder resolution, in Hz */
-    led_model_t led_model; /*!< LED model */
+    rmt_bytes_encoder_config_t bytes_encoder_config; /*!< RMT bytes encoder configuration */
+    rmt_symbol_word_t reset_code; /*!< Reset code for LED strip */
 } led_strip_encoder_config_t;
 
 /**
@@ -32,4 +32,3 @@ typedef struct {
  */
 esp_err_t rmt_new_led_strip_encoder(const led_strip_encoder_config_t *config, rmt_encoder_handle_t *ret_encoder);
 
-LED_STRIP_NAMESPACE_END

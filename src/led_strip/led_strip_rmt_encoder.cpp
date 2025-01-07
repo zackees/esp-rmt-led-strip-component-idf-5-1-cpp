@@ -4,7 +4,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <iostream>
+#ifdef ESP32
+
+#include "enabled.h"
+
+#if FASTLED_RMT5
+
+#include "enabled.h"
+
 
 // enable fprmissive
 #pragma GCC diagnostic push
@@ -17,8 +24,8 @@
 #include "led_strip_rmt_encoder.h"
 #include "cleanup.h"
 
-#include "namespace.h"
-LED_STRIP_NAMESPACE_BEGIN
+
+
 
 #define TAG "led_strip"
 
@@ -138,65 +145,17 @@ esp_err_t rmt_new_led_strip_encoder(const led_strip_encoder_config_t *config, rm
 
     // RmtLedStripEncoderDeleterOnError deleter(&ret, &led_encoder);
     ESP_GOTO_ON_FALSE(config && ret_encoder, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
-    ESP_GOTO_ON_FALSE(config->led_model < LED_MODEL_INVALID, ESP_ERR_INVALID_ARG, err, TAG, "invalid led model");
+    //ESP_GOTO_ON_FALSE(config->led_model < LED_MODEL_INVALID, ESP_ERR_INVALID_ARG, err, TAG, "invalid led model");
     led_encoder = static_cast<rmt_led_strip_encoder_t*>(calloc(1, sizeof(rmt_led_strip_encoder_t)));
     ESP_GOTO_ON_FALSE(led_encoder, ESP_ERR_NO_MEM, err, TAG, "no mem for led strip encoder");
     led_encoder->base.encode = rmt_encode_led_strip;
     led_encoder->base.del = rmt_del_led_strip_encoder;
     led_encoder->base.reset = rmt_led_strip_encoder_reset;
-    rmt_bytes_encoder_config_t bytes_encoder_config;
-    if (config->led_model == LED_MODEL_SK6812) {
-        bytes_encoder_config = (rmt_bytes_encoder_config_t) {
-            .bit0 = {
-                .duration0 = 0.3 * config->resolution / 1000000, // T0H=0.3us
-                .level0 = 1,
-                .duration1 = 0.9 * config->resolution / 1000000, // T0L=0.9us
-                .level1 = 0,
-            },
-            .bit1 = {
-                .duration0 = 0.6 * config->resolution / 1000000, // T1H=0.6us
-                .level0 = 1,
-                .duration1 = 0.6 * config->resolution / 1000000, // T1L=0.6us
-                .level1 = 0,
-            },
-            .flags = {
-                .msb_first = 1 // SK6812 transfer bit order: G7...G0R7...R0B7...B0(W7...W0)
-            }
-        };
-    } else if (config->led_model == LED_MODEL_WS2812) {
-        // different led strip might have its own timing requirements, following parameter is for WS2812
-        bytes_encoder_config = (rmt_bytes_encoder_config_t) {
-            .bit0 = {
-                .duration0 = 0.3 * config->resolution / 1000000, // T0H=0.3us
-                .level0 = 1,
-                .duration1 = 0.9 * config->resolution / 1000000, // T0L=0.9us
-                .level1 = 0,
-
-            },
-            .bit1 = {
-                .duration0 = 0.9 * config->resolution / 1000000, // T1H=0.9us
-                .level0 = 1,
-                .duration1 = 0.3 * config->resolution / 1000000, // T1L=0.3us
-                .level1 = 0,
-            },
-            .flags = {
-                .msb_first = 1 // WS2812 transfer bit order: G7...G0R7...R0B7...B0
-            }
-        };
-    } else {
-        assert(false);
-    }
+    rmt_bytes_encoder_config_t bytes_encoder_config = config->bytes_encoder_config;
     ESP_GOTO_ON_ERROR(rmt_new_bytes_encoder(&bytes_encoder_config, &led_encoder->bytes_encoder), err, TAG, "create bytes encoder failed");
     rmt_copy_encoder_config_t copy_encoder_config = {};
     ESP_GOTO_ON_ERROR(rmt_new_copy_encoder(&copy_encoder_config, &led_encoder->copy_encoder), err, TAG, "create copy encoder failed");
-
-    uint32_t reset_ticks = config->resolution / 1000000 * 280 / 2; // reset code duration defaults to 280us to accomodate WS2812B-V5
-    led_encoder->reset_code = (rmt_symbol_word_t) {
-        .duration0 = reset_ticks,
-        .level0 = 0,
-        .duration1 = reset_ticks,
-        .level1 = 0,
-    };
+    led_encoder->reset_code = config->reset_code;
     *ret_encoder = &led_encoder->base;
     cleanup_if_fialure.release();
     return ESP_OK;
@@ -206,4 +165,6 @@ esp_err_t rmt_new_led_strip_encoder(const led_strip_encoder_config_t *config, rm
 #pragma GCC diagnostic pop
 
 
-LED_STRIP_NAMESPACE_END
+#endif // FASTLED_RMT5
+
+#endif // ESP32

@@ -1,10 +1,24 @@
 #pragma once
 
+#include <stdint.h>
 #include "led_strip.h"
-#include "namespace.h"
 
-LED_STRIP_NAMESPACE_BEGIN
+#include "defs.h"
 
-led_strip_handle_t configure_led(int pin, uint32_t max_leds, led_model_t chipset, led_pixel_format_t rgbw);
 
-LED_STRIP_NAMESPACE_END
+struct config_led_t {
+    int pin;
+    uint32_t max_leds;
+    // led_model_t chipset;
+    bool rgbw;
+    //led_pixel_format_t rgbw;
+    rmt_bytes_encoder_config_t rmt_bytes_encoder_config;
+    rmt_symbol_word_t reset_code;
+    size_t mem_block_symbols = FASTLED_RMT_MEMBLOCK_SYMBOLS;
+    bool with_dma = FASTLED_RMT_WITH_DMA;
+    uint8_t* pixel_buf = nullptr;
+};
+
+
+esp_err_t construct_new_led_strip(config_led_t config, led_strip_handle_t* ret_strip);
+
