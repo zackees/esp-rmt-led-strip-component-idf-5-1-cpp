@@ -15,16 +15,11 @@
 // DATA_PIN and CLOCK_PIN Clock pin only needed for SPI based chipsets when not
 // using hardware SPI
 
-#define PIN1 6
-#define PIN2 1
+#define PIN1 1
+#define PIN2 6
 
 
 #define TAG "main.cpp"
-
-IRmtLedStrip* strip = nullptr;
-IRmtLedStrip* strip2 = nullptr;
-
-
 
 
 void setup() {
@@ -33,8 +28,7 @@ void setup() {
     esp_log_level_set("*", ESP_LOG_VERBOSE);
     delay(1000);
     ESP_LOGI(TAG, "Start blinking LED strip");
-    strip = create_rmt_led_strip(350, 800, 700, 600, 30000, PIN1, NUM_LEDS, false);
-    strip2 = create_rmt_led_strip(350, 800, 700, 600, 30000, PIN2, NUM_LEDS, false);
+
 }
 
 
@@ -96,6 +90,11 @@ void demo_low_level_api(int pin1, int pin2, uint32_t num_leds, LedStripMode mode
 }
 
 void demo_high_level_api(int pin1, int pin2, uint32_t num_leds, LedStripMode mode) {
+
+    IRmtLedStrip* strip = create_rmt_led_strip(350, 800, 700, 600, 30000, PIN1, NUM_LEDS, false);
+    IRmtLedStrip* strip2 = create_rmt_led_strip(350, 800, 700, 600, 30000, PIN2, NUM_LEDS, false);
+
+
     led_pixel_format_t rgbw_mode = {};
     led_model_t chipset = {};
     to_esp_modes(mode, &chipset, &rgbw_mode);
@@ -108,6 +107,10 @@ void demo_high_level_api(int pin1, int pin2, uint32_t num_leds, LedStripMode mod
         uint32_t diff = millis() - start;
         ESP_LOGE(TAG, "Time to draw: %d", diff);
     }
+
+    // never reached.
+    delete strip;
+    delete strip2;
 }
 
 void loop() {
