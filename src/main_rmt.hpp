@@ -56,9 +56,43 @@ led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_mo
     return led_strip;
 }
 
+
+class RmtStrip {
+ public:
+  RmtStrip(int pin, uint32_t led_count, led_model_t led_model) {
+    led_strip_handle_t led_strip = configure_led(pin, led_count, led_model);
+    mStrip = led_strip;
+  }
+
+  ~RmtStrip() {
+    led_strip_del(mStrip);
+    mStrip = nullptr;
+  }
+
+  void setPixel(uint32_t index, uint32_t red, uint32_t green, uint32_t blue) {
+    ESP_ERROR_CHECK(led_strip_set_pixel(mStrip, index, red, green, blue));
+  }
+
+  void setPixelRGBW(uint32_t index, uint32_t red, uint32_t green, uint32_t blue, uint32_t white) {
+    ESP_ERROR_CHECK(led_strip_set_pixel_rgbw(mStrip, index, red, green, blue, white));
+  }
+
+  void refresh() {
+    ESP_ERROR_CHECK(led_strip_refresh(mStrip));
+  }
+
+  void clear() {
+    ESP_ERROR_CHECK(led_strip_clear(mStrip));
+  }
+
+  private:
+    led_strip_handle_t mStrip;
+};
+
 void app_main(void)
 {
-    led_strip_handle_t led_strip = configure_led(LED_STRIP_GPIO_PIN, LED_STRIP_LED_COUNT, LED_MODEL_WS2812);
+    // led_strip_handle_t led_strip = configure_led(6, LED_STRIP_LED_COUNT, LED_MODEL_WS2812);
+    RmtStrip led_strip(6, LED_STRIP_LED_COUNT, LED_MODEL_WS2812);
     bool led_on_off = false;
 
     ESP_LOGI(TAG, "Start blinking LED strip");
@@ -66,14 +100,17 @@ void app_main(void)
         if (led_on_off) {
             /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for each color */
             for (int i = 0; i < LED_STRIP_LED_COUNT; i++) {
-                ESP_ERROR_CHECK(led_strip_set_pixel(led_strip, i, 5, 5, 5));
+                //ESP_ERROR_CHECK(led_strip_set_pixel(led_strip, i, 5, 5, 5));
+                led_strip.setPixel(i, 5, 5, 5);
             }
             /* Refresh the strip to send data */
-            ESP_ERROR_CHECK(led_strip_refresh(led_strip));
+            // ESP_ERROR_CHECK(led_strip_refresh(led_strip));
+            led_strip.refresh();
             ESP_LOGI(TAG, "LED ON!");
         } else {
             /* Set all LED off to clear all pixels */
-            ESP_ERROR_CHECK(led_strip_clear(led_strip));
+            // ESP_ERROR_CHECK(led_strip_clear(led_strip));
+            led_strip.clear();
             ESP_LOGI(TAG, "LED OFF!");
         }
 
