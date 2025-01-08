@@ -83,12 +83,40 @@ class RmtStrip {
     ESP_ERROR_CHECK(led_strip_refresh_wait_done(mStrip));
   }
 
+  void draw_async() {
+    if (mDrawIssued) {
+        wait_done();
+    }
+    ESP_ERROR_CHECK(led_strip_refresh_async(mStrip));
+    mDrawIssued = true;
+  }
+
+  void wait_done() {
+    if (!mDrawIssued) {
+        //ESP_LOGE(TAG, "No draw issued, skipping wait");
+        return;
+    }
+    ESP_ERROR_CHECK(led_strip_refresh_wait_done(mStrip));
+    mDrawIssued = false;
+  }
+
+  bool is_drawing() {
+    return mDrawIssued;
+  }
+
   void clear() {
     ESP_ERROR_CHECK(led_strip_clear(mStrip));
   }
 
+  void fill_color(uint32_t red, uint32_t green, uint32_t blue) {
+    for (int i = 0; i < LED_STRIP_LED_COUNT; i++) {
+      setPixel(i, red, green, blue);
+    }
+  }
+
   private:
     led_strip_handle_t mStrip;
+    bool mDrawIssued = false;
 };
 
 void app_main(void)
@@ -107,12 +135,15 @@ void app_main(void)
             }
             /* Refresh the strip to send data */
             // ESP_ERROR_CHECK(led_strip_refresh(led_strip));
-            led_strip.refresh();
+            // led_strip.refresh();
+            led_strip.draw_async();
             ESP_LOGI(TAG, "LED ON!");
         } else {
             /* Set all LED off to clear all pixels */
             // ESP_ERROR_CHECK(led_strip_clear(led_strip));
-            led_strip.clear();
+            // led_strip.clear();
+            led_strip.fill_color(0, 0, 0);
+            led_strip.draw_async();
             ESP_LOGI(TAG, "LED OFF!");
         }
 
