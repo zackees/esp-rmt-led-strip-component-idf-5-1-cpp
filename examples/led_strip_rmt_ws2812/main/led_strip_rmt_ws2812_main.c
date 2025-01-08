@@ -11,9 +11,9 @@
 #include "esp_err.h"
 
 // GPIO assignment
-#define LED_STRIP_GPIO_PIN  6
+#define LED_STRIP_GPIO_PIN  2
 // Numbers of the LED in the strip
-#define LED_STRIP_LED_COUNT 256
+#define LED_STRIP_LED_COUNT 24
 // 10MHz resolution, 1 tick = 0.1us (led strip needs a high resolution)
 #define LED_STRIP_RMT_RES_HZ  (10 * 1000 * 1000)
 
@@ -73,15 +73,4 @@ void app_main(void)
         led_on_off = !led_on_off;
         vTaskDelay(pdMS_TO_TICKS(500));
     }
-}
-
-
-void setup() {
-    // put your setup code here, to run once:
-    
-}
-
-void loop() {
-    // put your main code here, to run repeatedly:
-    app_main();
 }

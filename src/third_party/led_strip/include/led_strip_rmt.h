@@ -5,20 +5,15 @@
  */
 #pragma once
 
-
 #include <stdint.h>
-
 #include "esp_err.h"
 #include "led_strip_types.h"
-#include "platforms/esp/esp_version.h"
-
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+#include "esp_idf_version.h"
 #include "driver/rmt_types.h"
-#else
-#error "This library is only designed to run on ESP-IDF v5.0.0 and later"
+
+#ifdef __cplusplus
+extern "C" {
 #endif
-
-
 
 /**
  * @brief LED Strip RMT specific configuration
@@ -45,18 +40,8 @@ typedef struct {
  *      - ESP_ERR_NO_MEM: create LED strip handle failed because of out of memory
  *      - ESP_FAIL: create LED strip handle failed because some other error
  */
-esp_err_t led_strip_new_rmt_device(
-        const led_strip_config_t *led_config,
-        const led_strip_rmt_config_t *rmt_config,
-        led_strip_handle_t *ret_strip);
+esp_err_t led_strip_new_rmt_device(const led_strip_config_t *led_config, const led_strip_rmt_config_t *rmt_config, led_strip_handle_t *ret_strip);
 
-// Create a new led strip with a pre-allocated pixel buffer.
-esp_err_t led_strip_new_rmt_device_with_buffer(
-        const led_strip_config_t *led_config,
-        const led_strip_rmt_config_t *rmt_config,
-        uint8_t *pixel_buf,
-        led_strip_handle_t *ret_strip);
-
-// release_pixel_buffer is true then the pixel buffer will also be freed.
-esp_err_t led_strip_release_rmt_device(led_strip_handle_t strip, bool release_pixel_buffer);
-
+#ifdef __cplusplus
+}
+#endif

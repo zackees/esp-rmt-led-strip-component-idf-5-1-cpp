@@ -11,11 +11,9 @@
 #include "esp_err.h"
 
 // GPIO assignment
-#define LED_STRIP_GPIO_PIN  6
+#define LED_STRIP_GPIO_PIN  2
 // Numbers of the LED in the strip
-#define LED_STRIP_LED_COUNT 256
-// 10MHz resolution, 1 tick = 0.1us (led strip needs a high resolution)
-#define LED_STRIP_RMT_RES_HZ  (10 * 1000 * 1000)
+#define LED_STRIP_LED_COUNT 24
 
 static const char *TAG = "example";
 
@@ -26,26 +24,33 @@ led_strip_handle_t configure_led(void)
         .strip_gpio_num = LED_STRIP_GPIO_PIN, // The GPIO that connected to the LED strip's data line
         .max_leds = LED_STRIP_LED_COUNT,      // The number of LEDs in the strip,
         .led_model = LED_MODEL_WS2812,        // LED strip model
-        .color_component_format = LED_STRIP_COLOR_COMPONENT_FMT_GRB, // The color order of the strip: GRB
+        // set the color order of the strip: GRB
+        .color_component_format = {
+            .format = {
+                .r_pos = 1, // red is the second byte in the color data
+                .g_pos = 0, // green is the first byte in the color data
+                .b_pos = 2, // blue is the third byte in the color data
+                .num_components = 3, // total 3 color components
+            },
+        },
         .flags = {
             .invert_out = false, // don't invert the output signal
         }
     };
 
-    // LED strip backend configuration: RMT
-    led_strip_rmt_config_t rmt_config = {
-        .clk_src = RMT_CLK_SRC_DEFAULT,        // different clock source can lead to different power consumption
-        .resolution_hz = LED_STRIP_RMT_RES_HZ, // RMT counter clock frequency
-        .mem_block_symbols = 64,               // the memory size of each RMT channel, in words (4 bytes)
+    // LED strip backend configuration: SPI
+    led_strip_spi_config_t spi_config = {
+        .clk_src = SPI_CLK_SRC_DEFAULT, // different clock source can lead to different power consumption
+        .spi_bus = SPI2_HOST,           // SPI bus ID
         .flags = {
-            .with_dma = false, // DMA feature is available on chips like ESP32-S3/P4
+            .with_dma = true, // Using DMA can improve performance and help drive more LEDs
         }
     };
 
     // LED Strip object handle
     led_strip_handle_t led_strip;
-    ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &led_strip));
-    ESP_LOGI(TAG, "Created LED strip object with RMT backend");
+    ESP_ERROR_CHECK(led_strip_new_spi_device(&strip_config, &spi_config, &led_strip));
+    ESP_LOGI(TAG, "Created LED strip object with SPI backend");
     return led_strip;
 }
 
@@ -73,15 +78,4 @@ void app_main(void)
         led_on_off = !led_on_off;
         vTaskDelay(pdMS_TO_TICKS(500));
     }
-}
-
-
-void setup() {
-    // put your setup code here, to run once:
-    
-}
-
-void loop() {
-    // put your main code here, to run repeatedly:
-    app_main();
 }
