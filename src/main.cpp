@@ -1,5 +1,5 @@
 
-#define USE_SPI
+// #define USE_SPI
 
 #ifdef USE_SPI
 #include "../examples/led_strip_spi_ws2812/main/led_strip_spi_ws2812_main.c"
