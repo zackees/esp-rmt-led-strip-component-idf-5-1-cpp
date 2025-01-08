@@ -78,7 +78,9 @@ class RmtStrip {
   }
 
   void refresh() {
-    ESP_ERROR_CHECK(led_strip_refresh(mStrip));
+    // ESP_ERROR_CHECK(led_strip_refresh(mStrip));
+    ESP_ERROR_CHECK(led_strip_refresh_async(mStrip));
+    ESP_ERROR_CHECK(led_strip_refresh_wait_done(mStrip));
   }
 
   void clear() {

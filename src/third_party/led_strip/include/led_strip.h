@@ -80,6 +80,11 @@ esp_err_t led_strip_set_pixel_hsv(led_strip_handle_t strip, uint32_t index, uint
  */
 esp_err_t led_strip_refresh(led_strip_handle_t strip);
 
+
+esp_err_t led_strip_refresh_async(led_strip_handle_t strip);
+
+esp_err_t led_strip_refresh_wait_done(led_strip_handle_t strip);
+
 /**
  * @brief Clear LED strip (turn off all LEDs)
  *
