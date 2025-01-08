@@ -607,6 +607,8 @@
                 "LOG_LOCAL_LEVEL=ESP_LOG_VERBOSE",
                 "FASTLED_ESP32_SPI_BULK_TRANSFER=1",
                 "FASTLED_DBG_USE_IOSTREAM=1",
+                "LED_STRIP_GPIO_PIN=6",
+                "LED_STRIP_LED_COUNT=256",
                 "ESP_PLATFORM",
                 "IDF_VER=\"v5.1.4-586-gb6b4727c58-dirty\"",
                 "MBEDTLS_CONFIG_FILE=\"mbedtls/esp_config.h\"",

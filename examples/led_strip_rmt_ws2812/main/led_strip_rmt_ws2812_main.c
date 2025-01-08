@@ -10,10 +10,17 @@
 #include "esp_log.h"
 #include "esp_err.h"
 
+#ifndef LED_STRIP_GPIO_PIN
 // GPIO assignment
 #define LED_STRIP_GPIO_PIN  2
+#endif
+
+#ifndef LED_STRIP_LED_COUNT
 // Numbers of the LED in the strip
 #define LED_STRIP_LED_COUNT 24
+#endif
+
+
 // 10MHz resolution, 1 tick = 0.1us (led strip needs a high resolution)
 #define LED_STRIP_RMT_RES_HZ  (10 * 1000 * 1000)
 

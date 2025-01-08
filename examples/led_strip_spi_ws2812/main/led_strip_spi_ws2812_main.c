@@ -10,10 +10,15 @@
 #include "esp_log.h"
 #include "esp_err.h"
 
+#ifndef LED_STRIP_GPIO_PIN
 // GPIO assignment
 #define LED_STRIP_GPIO_PIN  2
+#endif
+
+#ifndef LED_STRIP_LED_COUNT
 // Numbers of the LED in the strip
 #define LED_STRIP_LED_COUNT 24
+#endif
 
 static const char *TAG = "example";
 
