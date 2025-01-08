@@ -9,6 +9,7 @@
 #include "led_strip.h"
 #include "esp_log.h"
 #include "esp_err.h"
+#include "esp_check.h"
 
 #ifndef LED_STRIP_GPIO_PIN
 // GPIO assignment
@@ -26,14 +27,16 @@
 
 static const char *TAG = "example";
 
-led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_model)
+led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_model, bool is_rgbw)
 {
+    led_color_component_format_t color_component_format =
+        is_rgbw ? LED_STRIP_COLOR_COMPONENT_FMT_RGBW : LED_STRIP_COLOR_COMPONENT_FMT_RGB;
     // LED strip general initialization, according to your led board design
     led_strip_config_t strip_config = {
         .strip_gpio_num = pin, // The GPIO that connected to the LED strip's data line
         .max_leds = led_count,      // The number of LEDs in the strip,
         .led_model = led_model,        // LED strip model
-        .color_component_format = LED_STRIP_COLOR_COMPONENT_FMT_RGB, // The color order of the strip: GRB
+        .color_component_format = color_component_format, // The color order of the strip: GRB
         .flags = {
             .invert_out = false, // don't invert the output signal
         }
@@ -59,28 +62,32 @@ led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_mo
 
 class RmtStrip {
  public:
-  RmtStrip(int pin, uint32_t led_count, led_model_t led_model) {
-    led_strip_handle_t led_strip = configure_led(pin, led_count, led_model);
+  RmtStrip(int pin, uint32_t led_count, led_model_t led_model, bool is_rgbw): mIsRgbw(is_rgbw) {
+    led_strip_handle_t led_strip = configure_led(pin, led_count, led_model, is_rgbw);
     mStrip = led_strip;
   }
 
   ~RmtStrip() {
+    wait_done();
     led_strip_del(mStrip);
     mStrip = nullptr;
   }
 
-  void setPixel(uint32_t index, uint32_t red, uint32_t green, uint32_t blue) {
+  esp_err_t setPixel(uint32_t index, uint32_t red, uint32_t green, uint32_t blue) {
+    ESP_RETURN_ON_FALSE(!mIsRgbw, ESP_ERR_INVALID_ARG, TAG, "cannot set RGB on RGBW strip");
     ESP_ERROR_CHECK(led_strip_set_pixel(mStrip, index, red, green, blue));
+    return ESP_OK;
   }
 
-  void setPixelRGBW(uint32_t index, uint32_t red, uint32_t green, uint32_t blue, uint32_t white) {
+  esp_err_t setPixelRGBW(uint32_t index, uint32_t red, uint32_t green, uint32_t blue, uint32_t white) {
+    ESP_RETURN_ON_FALSE(mIsRgbw, ESP_ERR_INVALID_ARG, TAG, "cannot set RGBW on RGB strip");
     ESP_ERROR_CHECK(led_strip_set_pixel_rgbw(mStrip, index, red, green, blue, white));
+    return ESP_OK;
   }
 
-  void refresh() {
-    // ESP_ERROR_CHECK(led_strip_refresh(mStrip));
-    ESP_ERROR_CHECK(led_strip_refresh_async(mStrip));
-    ESP_ERROR_CHECK(led_strip_refresh_wait_done(mStrip));
+  void draw_sync() {
+    draw_async();
+    wait_done();
   }
 
   void draw_async() {
@@ -117,12 +124,13 @@ class RmtStrip {
   private:
     led_strip_handle_t mStrip;
     bool mDrawIssued = false;
+    bool mIsRgbw;
 };
 
 void app_main(void)
 {
     // led_strip_handle_t led_strip = configure_led(6, LED_STRIP_LED_COUNT, LED_MODEL_WS2812);
-    RmtStrip led_strip(6, LED_STRIP_LED_COUNT, LED_MODEL_WS2812);
+    RmtStrip led_strip(6, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, false);
     bool led_on_off = false;
 
     ESP_LOGI(TAG, "Start blinking LED strip");
