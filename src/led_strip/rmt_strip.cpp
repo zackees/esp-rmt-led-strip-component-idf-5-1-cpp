@@ -73,7 +73,7 @@ public:
             mError = true;
             // FASTLED_WARN("All available RMT channels are in use, and no more can be allocated.");
             // ESP_LOGE("All available RMT channels are in use, failed to allocate RMT driver on pin: " << mPin << ".");
-            ESP_LOGE(TAG, "All available RMT channels are in use, failed to allocate RMT driver on pin: %d.", mPin);
+            FASTLED_WARN("All available RMT channels are in use, failed to allocate RMT driver on pin: " << mPin);
             return;
         }
         // Some other error that we can't handle.
@@ -127,6 +127,7 @@ public:
     virtual void draw() override {
         if (mError) {
             FASTLED_WARN("draw called but mError is true");
+            mDrawing = true;
             return;
         }
         FASTLED_WARN_IF(!mDrawing, "draw called while already drawing");
@@ -141,12 +142,12 @@ public:
         if (!mDrawing) {
             return;
         }
+        mDrawing = false;
         if (mError) {
             FASTLED_WARN("wait_for_draw_complete called but mError is true");
             return;
         }
         led_strip_wait_refresh_done(mLedStrip, -1);
-        mDrawing = false;
     }
 
     virtual uint32_t num_pixels() const {

@@ -17,6 +17,8 @@
 
 #define PIN1 1
 #define PIN2 6
+#define PIN3 7
+#define PIN4 8
 
 
 #define TAG "main.cpp"
@@ -26,7 +28,7 @@ void setup() {
     Serial.begin(9600);
     Serial.setDebugOutput(true);
     esp_log_level_set("*", ESP_LOG_VERBOSE);
-    delay(1000);
+    delay(2000);
     ESP_LOGI(TAG, "Start blinking LED strip");
 
 }
@@ -89,11 +91,12 @@ void demo_low_level_api(int pin1, int pin2, uint32_t num_leds, LedStripMode mode
     }
 }
 
-void demo_high_level_api(int pin1, int pin2, uint32_t num_leds, LedStripMode mode) {
+void demo_high_level_api(int pin1, int pin2, int pin3, int pin4, uint32_t num_leds, LedStripMode mode) {
 
-    IRmtLedStrip* strip = create_rmt_led_strip(350, 800, 700, 600, 30000, PIN1, NUM_LEDS, false);
-    IRmtLedStrip* strip2 = create_rmt_led_strip(350, 800, 700, 600, 30000, PIN2, NUM_LEDS, false);
-
+    IRmtLedStrip* strip = create_rmt_led_strip(350, 800, 700, 600, 30000, pin1, NUM_LEDS, false);
+    IRmtLedStrip* strip3 = create_rmt_led_strip(350, 800, 700, 600, 30000, pin3, NUM_LEDS, false);
+    IRmtLedStrip* strip4 = create_rmt_led_strip(350, 800, 700, 600, 30000, pin4, NUM_LEDS, false);
+    IRmtLedStrip* strip2 = create_rmt_led_strip(350, 800, 700, 600, 30000, pin2, NUM_LEDS, false);
 
     led_pixel_format_t rgbw_mode = {};
     led_model_t chipset = {};
@@ -104,6 +107,8 @@ void demo_high_level_api(int pin1, int pin2, uint32_t num_leds, LedStripMode mod
         uint32_t start = millis();
         color_cycle.draw_loop(strip);
         color_cycle.draw_loop(strip2);
+        color_cycle.draw_loop(strip3);
+        color_cycle.draw_loop(strip4);
         uint32_t diff = millis() - start;
         ESP_LOGE(TAG, "Time to draw: %d", diff);
     }
@@ -111,8 +116,10 @@ void demo_high_level_api(int pin1, int pin2, uint32_t num_leds, LedStripMode mod
     // never reached.
     delete strip;
     delete strip2;
+    delete strip3;
+    delete strip4;
 }
 
 void loop() {
-    demo_high_level_api(PIN1, PIN2, NUM_LEDS, WS2812);
+    demo_high_level_api(PIN1, PIN2, PIN3, PIN4, NUM_LEDS, WS2812);
 }
