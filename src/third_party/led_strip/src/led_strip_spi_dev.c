@@ -101,6 +101,18 @@ static esp_err_t led_strip_spi_refresh(led_strip_t *strip)
     return ESP_OK;
 }
 
+static esp_err_t led_strip_refresh_async(led_strip_t *strip)
+{
+    ESP_LOGE(TAG, "SPI does not support async refresh");
+    return led_strip_spi_refresh(strip);
+}
+
+static esp_err_t led_strip_refresh_wait_done(led_strip_t *strip)
+{
+    ESP_LOGE(TAG, "SPI does not support async refresh");
+    return ESP_OK;
+}
+
 static esp_err_t led_strip_spi_clear(led_strip_t *strip)
 {
     led_strip_spi_obj *spi_strip = __containerof(strip, led_strip_spi_obj, base);
@@ -211,6 +223,8 @@ esp_err_t led_strip_new_spi_device(const led_strip_config_t *led_config, const l
     spi_strip->base.set_pixel = led_strip_spi_set_pixel;
     spi_strip->base.set_pixel_rgbw = led_strip_spi_set_pixel_rgbw;
     spi_strip->base.refresh = led_strip_spi_refresh;
+    spi_strip->base.refresh_async = led_strip_refresh_async;
+    spi_strip->base.refresh_wait_done = led_strip_refresh_wait_done;
     spi_strip->base.clear = led_strip_spi_clear;
     spi_strip->base.del = led_strip_spi_del;
 

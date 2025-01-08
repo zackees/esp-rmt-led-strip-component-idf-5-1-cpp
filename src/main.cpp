@@ -1,13 +1,16 @@
 
-// #define USE_SPI
+#define USE_SPI
 
 #ifdef USE_SPI
-#include "../examples/led_strip_spi_ws2812/main/led_strip_spi_ws2812_main.c"
+#include "main_spi.hpp"
 #else
-#include "../examples/led_strip_rmt_ws2812/main/led_strip_rmt_ws2812_main.c"
+#include "main_rmt.hpp"
 #endif
 
 void setup() {}
 void loop() {
     app_main();
 }
+
+// spi_device_queue_trans
+// spi_device_get_trans_result

@@ -176,6 +176,8 @@ esp_err_t led_strip_new_rmt_device(const led_strip_config_t *led_config, const l
     rmt_strip->base.set_pixel = led_strip_rmt_set_pixel;
     rmt_strip->base.set_pixel_rgbw = led_strip_rmt_set_pixel_rgbw;
     rmt_strip->base.refresh = led_strip_rmt_refresh;
+    rmt_strip->base.refresh_async = led_strip_refresh_async;
+    rmt_strip->base.refresh_wait_done = led_strip_wait_for_done;
     rmt_strip->base.clear = led_strip_rmt_clear;
     rmt_strip->base.del = led_strip_rmt_del;
 

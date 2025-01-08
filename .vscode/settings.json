@@ -73,6 +73,7 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "led_strip_rmt_ws2812_main.c": "cpp"
+        "led_strip_rmt_ws2812_main.c": "cpp",
+        "led_strip_spi_ws2812_main.c": "cpp"
     }
 }

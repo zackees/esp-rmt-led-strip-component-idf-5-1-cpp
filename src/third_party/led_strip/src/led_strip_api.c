@@ -78,7 +78,14 @@ esp_err_t led_strip_set_pixel_rgbw(led_strip_handle_t strip, uint32_t index, uin
 esp_err_t led_strip_refresh(led_strip_handle_t strip)
 {
     ESP_RETURN_ON_FALSE(strip, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
-    return strip->refresh(strip);
+    ESP_RETURN_ON_ERROR(strip->refresh_async(strip), TAG, "refresh failed");
+    ESP_RETURN_ON_ERROR(strip->refresh_wait_done(strip), TAG, "wait for done failed");
+}
+
+esp_err_t led_strip_refresh_async(led_strip_handle_t strip)
+{
+    ESP_RETURN_ON_FALSE(strip, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
+    return strip->refresh_async(strip);
 }
 
 esp_err_t led_strip_clear(led_strip_handle_t strip)
