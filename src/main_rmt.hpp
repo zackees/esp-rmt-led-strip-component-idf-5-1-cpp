@@ -26,13 +26,13 @@
 
 static const char *TAG = "example";
 
-led_strip_handle_t configure_led(int pin, uint32_t led_count)
+led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_model)
 {
     // LED strip general initialization, according to your led board design
     led_strip_config_t strip_config = {
         .strip_gpio_num = pin, // The GPIO that connected to the LED strip's data line
         .max_leds = led_count,      // The number of LEDs in the strip,
-        .led_model = LED_MODEL_WS2812,        // LED strip model
+        .led_model = led_model,        // LED strip model
         .color_component_format = LED_STRIP_COLOR_COMPONENT_FMT_RGB, // The color order of the strip: GRB
         .flags = {
             .invert_out = false, // don't invert the output signal
@@ -58,7 +58,7 @@ led_strip_handle_t configure_led(int pin, uint32_t led_count)
 
 void app_main(void)
 {
-    led_strip_handle_t led_strip = configure_led(LED_STRIP_GPIO_PIN, LED_STRIP_LED_COUNT);
+    led_strip_handle_t led_strip = configure_led(LED_STRIP_GPIO_PIN, LED_STRIP_LED_COUNT, LED_MODEL_WS2812);
     bool led_on_off = false;
 
     ESP_LOGI(TAG, "Start blinking LED strip");

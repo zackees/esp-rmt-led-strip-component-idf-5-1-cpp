@@ -1,5 +1,5 @@
 
-#define USE_SPI
+//#define USE_SPI
 
 #ifdef USE_SPI
 #include "main_spi.hpp"
