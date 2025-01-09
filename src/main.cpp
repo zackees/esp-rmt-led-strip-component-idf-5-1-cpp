@@ -1,5 +1,5 @@
 
-#define USE_SPI
+/// #define USE_SPI
 
 #include <Arduino.h>
 
