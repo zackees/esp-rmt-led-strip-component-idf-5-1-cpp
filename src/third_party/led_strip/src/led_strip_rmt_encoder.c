@@ -71,6 +71,7 @@ static esp_err_t rmt_led_strip_encoder_reset(rmt_encoder_t *encoder)
     return ESP_OK;
 }
 
+
 esp_err_t rmt_new_led_strip_encoder(const led_strip_encoder_config_t *config, rmt_encoder_handle_t *ret_encoder)
 {
     esp_err_t ret = ESP_OK;
@@ -161,4 +162,15 @@ err:
         free(led_encoder);
     }
     return ret;
+}
+
+
+esp_err_t rmt_new_led_strip_encoder_with_timings(const led_strip_encoder_config_t *config, rmt_encoder_handle_t *ret_encoder) {
+    uint32_t t0h = config->timings.t0h;
+    uint32_t t1h = config->timings.t1h;
+    uint32_t t0l = config->timings.t0l;
+    uint32_t t1l = config->timings.t1l;
+    uint32_t reset = config->timings.reset;
+
+    return ESP_OK;
 }
