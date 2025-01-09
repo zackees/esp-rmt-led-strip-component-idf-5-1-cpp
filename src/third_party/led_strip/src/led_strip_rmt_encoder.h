@@ -35,6 +35,18 @@ typedef struct {
  */
 esp_err_t rmt_new_led_strip_encoder(const led_strip_encoder_config_t *config, rmt_encoder_handle_t *ret_encoder);
 
+/**
+ * @brief Create RMT encoder for encoding LED strip pixels into RMT symbols with custom timings
+ *
+ * @param[in] config Encoder configuration including custom timings
+ * @param[out] ret_encoder Returned encoder handle
+ * @return
+ *      - ESP_ERR_INVALID_ARG for any invalid arguments
+ *      - ESP_ERR_NO_MEM out of memory when creating led strip encoder
+ *      - ESP_OK if creating encoder successfully
+ */
+esp_err_t rmt_new_led_strip_encoder_with_timings(const led_strip_encoder_config_t *config, rmt_encoder_handle_t *ret_encoder);
+
 #ifdef __cplusplus
 }
 #endif
