@@ -81,6 +81,7 @@ static esp_err_t led_strip_rmt_refresh_async(led_strip_t *strip)
     ESP_RETURN_ON_ERROR(rmt_enable(rmt_strip->rmt_chan), TAG, "enable RMT channel failed");
     ESP_RETURN_ON_ERROR(rmt_transmit(rmt_strip->rmt_chan, rmt_strip->strip_encoder, rmt_strip->pixel_buf,
                                      rmt_strip->strip_len * rmt_strip->bytes_per_pixel, &tx_conf), TAG, "transmit pixels by RMT failed");
+    return ESP_OK;
 }
 
 static esp_err_t led_strip_rmt_wait_for_done(led_strip_t *strip)
@@ -88,6 +89,7 @@ static esp_err_t led_strip_rmt_wait_for_done(led_strip_t *strip)
     led_strip_rmt_obj *rmt_strip = __containerof(strip, led_strip_rmt_obj, base);
     ESP_RETURN_ON_ERROR(rmt_tx_wait_all_done(rmt_strip->rmt_chan, -1), TAG, "wait for RMT done failed");
     ESP_RETURN_ON_ERROR(rmt_disable(rmt_strip->rmt_chan), TAG, "disable RMT channel failed");
+    return ESP_OK;
 }
 
 static esp_err_t led_strip_rmt_refresh(led_strip_t *strip)

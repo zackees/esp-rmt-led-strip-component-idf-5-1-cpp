@@ -29,6 +29,9 @@ static const char *TAG = "example";
 
 led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_model, bool is_rgbw)
 {
+    const bool use_dma = false;  // there's a bug in the current implementation: using dma
+    // is always going to fail, so it's disabled for now.
+    uint32_t memory_block_symbols = use_dma ? 1024 : 0;
     led_color_component_format_t color_component_format =
         is_rgbw ? LED_STRIP_COLOR_COMPONENT_FMT_RGBW : LED_STRIP_COLOR_COMPONENT_FMT_RGB;
     // LED strip general initialization, according to your led board design
@@ -46,7 +49,7 @@ led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_mo
     led_strip_rmt_config_t rmt_config = {
         .clk_src = RMT_CLK_SRC_DEFAULT,        // different clock source can lead to different power consumption
         .resolution_hz = LED_STRIP_RMT_RES_HZ, // RMT counter clock frequency
-        .mem_block_symbols = 64,               // the memory size of each RMT channel, in words (4 bytes)
+        .mem_block_symbols = memory_block_symbols,               // the memory size of each RMT channel, in words (4 bytes)
         .flags = {
             .with_dma = false, // DMA feature is available on chips like ESP32-S3/P4
         }
@@ -130,7 +133,14 @@ class RmtStrip {
 void app_main(void)
 {
     // led_strip_handle_t led_strip = configure_led(6, LED_STRIP_LED_COUNT, LED_MODEL_WS2812);
-    RmtStrip led_strip(6, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, false);
+
+    RmtStrip led_strip2(7, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, false);
+    RmtStrip led_strip3(8, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, false);
+    RmtStrip led_strip4(9, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, false);
+    RmtStrip led_strip1(6, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, false);
+    
+    // RmtStrip* rmtstrips[] = {&led_strip1, &led_strip2, &led_strip3, &led_strip4};
+    RmtStrip* rmtstrips[] = {&led_strip1, &led_strip2, &led_strip3, &led_strip4};
     bool led_on_off = false;
 
     ESP_LOGI(TAG, "Start blinking LED strip");
@@ -139,20 +149,32 @@ void app_main(void)
             /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for each color */
             for (int i = 0; i < LED_STRIP_LED_COUNT; i++) {
                 //ESP_ERROR_CHECK(led_strip_set_pixel(led_strip, i, 5, 5, 5));
-                led_strip.setPixel(i, 5, 5, 5);
+                // led_strip.setPixel(i, 5, 5, 5);
+                for (auto strip : rmtstrips) {
+                    strip->setPixel(i, 5, 5, 5);
+                }
             }
             /* Refresh the strip to send data */
             // ESP_ERROR_CHECK(led_strip_refresh(led_strip));
             // led_strip.refresh();
-            led_strip.draw_async();
-            ESP_LOGI(TAG, "LED ON!");
+            // led_strip.draw_async();
+            for (auto strip : rmtstrips) {
+                strip->draw_async();
+            }
+            // ESP_LOGI(TAG, "LED ON!");
         } else {
             /* Set all LED off to clear all pixels */
             // ESP_ERROR_CHECK(led_strip_clear(led_strip));
             // led_strip.clear();
-            led_strip.fill_color(0, 0, 0);
-            led_strip.draw_async();
-            ESP_LOGI(TAG, "LED OFF!");
+            // led_strip.fill_color(0, 0, 0);
+            for (auto strip : rmtstrips) {
+                strip->fill_color(0, 0, 0);
+            }
+            //led_strip.draw_async();
+            for (auto strip : rmtstrips) {
+                strip->draw_async();
+            }
+            //ESP_LOGI(TAG, "LED OFF!");
         }
 
         led_on_off = !led_on_off;

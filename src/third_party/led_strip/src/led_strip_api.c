@@ -86,6 +86,7 @@ esp_err_t led_strip_refresh(led_strip_handle_t strip)
     ESP_RETURN_ON_FALSE(strip, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
     ESP_RETURN_ON_ERROR(strip->refresh_async(strip), TAG, "refresh failed");
     ESP_RETURN_ON_ERROR(strip->refresh_wait_done(strip), TAG, "wait for done failed");
+    return ESP_OK;
 }
 
 esp_err_t led_strip_refresh_async(led_strip_handle_t strip)
