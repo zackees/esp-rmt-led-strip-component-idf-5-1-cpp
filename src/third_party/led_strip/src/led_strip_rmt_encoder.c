@@ -166,6 +166,8 @@ err:
 
 
 esp_err_t rmt_new_led_strip_encoder_with_timings(const led_strip_encoder_config_t *config, rmt_encoder_handle_t *ret_encoder) {
+    // t0h, t1h, t0l, t1l are in nanoseconds.
+    // reset is in microseconds.
     uint32_t t0h = config->timings.t0h;
     uint32_t t1h = config->timings.t1h;
     uint32_t t0l = config->timings.t0l;
