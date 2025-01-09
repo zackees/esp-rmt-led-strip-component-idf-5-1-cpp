@@ -27,6 +27,64 @@
 
 static const char *TAG = "example";
 
+// typedef struct {
+//     uint32_t t0h; /*!< High time for 0 bit, */
+//     uint32_t t1h; /*!< High time for 1 bit */
+//     uint32_t t0l; /*!< Low time for 0 bit */
+//     uint32_t t1l; /*!< Low time for 1 bit */
+//     uint32_t reset; /*!< Reset time, microseconds */
+// } led_strip_encoder_timings_t;
+
+
+
+led_strip_handle_t configure_led_with_timings(int pin, uint32_t led_count, bool is_rgbw, uint32_t t0h, uint32_t t0l, uint32_t t1h, uint32_t t1l, uint32_t reset)
+{
+    led_strip_encoder_timings_t timings = {
+        .t0h = t0h,
+        .t1h = t1h,
+        .t0l = t0l,
+        .t1l = t1l,
+        .reset = reset
+    };
+
+    const bool use_dma = false;  // there's a bug in the current implementation: using dma
+    // is always going to fail, so it's disabled for now.
+    uint32_t memory_block_symbols = use_dma ? 1024 : 0;
+    led_color_component_format_t color_component_format =
+        is_rgbw ? LED_STRIP_COLOR_COMPONENT_FMT_RGBW : LED_STRIP_COLOR_COMPONENT_FMT_RGB;
+
+
+    // LED strip general initialization, according to your led board design
+    led_strip_config_t strip_config = {
+        .strip_gpio_num = pin, // The GPIO that connected to the LED strip's data line
+        .max_leds = led_count,      // The number of LEDs in the strip,
+        .led_model = LED_MODEL_WS2812,        // LED strip model
+        .color_component_format = color_component_format, // The color order of the strip: GRB
+        .flags = {
+            .invert_out = false, // don't invert the output signal
+        },
+        .timings = timings
+    };
+
+    // LED strip backend configuration: RMT
+    led_strip_rmt_config_t rmt_config = {
+        .clk_src = RMT_CLK_SRC_DEFAULT,        // different clock source can lead to different power consumption
+        .resolution_hz = LED_STRIP_RMT_RES_HZ, // RMT counter clock frequency
+        .mem_block_symbols = memory_block_symbols,               // the memory size of each RMT channel, in words (4 bytes)
+        .flags = {
+            .with_dma = false, // DMA feature is available on chips like ESP32-S3/P4
+        }
+    };
+
+    // LED Strip object handle
+    led_strip_handle_t led_strip;
+    ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &led_strip));
+    ESP_LOGI(TAG, "Created LED strip object with RMT backend");
+    return led_strip;
+
+    return nullptr;
+}
+
 led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_model, bool is_rgbw)
 {
     const bool use_dma = false;  // there's a bug in the current implementation: using dma
@@ -34,6 +92,9 @@ led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_mo
     uint32_t memory_block_symbols = use_dma ? 1024 : 0;
     led_color_component_format_t color_component_format =
         is_rgbw ? LED_STRIP_COLOR_COMPONENT_FMT_RGBW : LED_STRIP_COLOR_COMPONENT_FMT_RGB;
+
+
+
     // LED strip general initialization, according to your led board design
     led_strip_config_t strip_config = {
         .strip_gpio_num = pin, // The GPIO that connected to the LED strip's data line
@@ -65,11 +126,12 @@ led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_mo
 
 class RmtStrip {
  public:
-  RmtStrip(int pin, uint32_t led_count, led_model_t led_model, bool is_rgbw): mIsRgbw(is_rgbw) {
-    led_strip_handle_t led_strip = configure_led(pin, led_count, led_model, is_rgbw);
+  RmtStrip(int pin, uint32_t led_count, bool is_rgbw, uint32_t th0, uint32_t tl0, uint32_t th1, uint32_t tl1, uint32_t reset)
+      : mIsRgbw(is_rgbw) {
+    led_strip_handle_t led_strip = configure_led_with_timings(pin, led_count, is_rgbw, th0, tl0, th1, tl1, reset);
     mStrip = led_strip;
   }
-
+  
   ~RmtStrip() {
     wait_done();
     led_strip_del(mStrip);
@@ -132,12 +194,17 @@ class RmtStrip {
 
 void app_main(void)
 {
-    // led_strip_handle_t led_strip = configure_led(6, LED_STRIP_LED_COUNT, LED_MODEL_WS2812);
+    // ws2812 timings
+    uint32_t th0 = 300;  // ns
+    uint32_t tl0 = 900;  // ns
+    uint32_t th1 = 900;  // ns
+    uint32_t tl1 = 300;  // ns
+    uint32_t reset = 280;  // us
 
-    RmtStrip led_strip2(7, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, false);
-    RmtStrip led_strip3(8, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, false);
-    RmtStrip led_strip4(9, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, false);
-    RmtStrip led_strip1(6, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, false);
+    RmtStrip led_strip2(7, LED_STRIP_LED_COUNT, false, th0, tl0, th1, tl1, reset);
+    RmtStrip led_strip3(8, LED_STRIP_LED_COUNT, false, th0, tl0, th1, tl1, reset);
+    RmtStrip led_strip4(9, LED_STRIP_LED_COUNT, false, th0, tl0, th1, tl1, reset);
+    RmtStrip led_strip1(6, LED_STRIP_LED_COUNT, false, th0, tl0, th1, tl1, reset);
     
     // RmtStrip* rmtstrips[] = {&led_strip1, &led_strip2, &led_strip3, &led_strip4};
     RmtStrip* rmtstrips[] = {&led_strip1, &led_strip2, &led_strip3, &led_strip4};
@@ -164,9 +231,6 @@ void app_main(void)
             // ESP_LOGI(TAG, "LED ON!");
         } else {
             /* Set all LED off to clear all pixels */
-            // ESP_ERROR_CHECK(led_strip_clear(led_strip));
-            // led_strip.clear();
-            // led_strip.fill_color(0, 0, 0);
             for (auto strip : rmtstrips) {
                 strip->fill_color(0, 0, 0);
             }

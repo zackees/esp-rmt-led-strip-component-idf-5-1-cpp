@@ -77,38 +77,41 @@ esp_err_t rmt_new_led_strip_encoder(const led_strip_encoder_config_t *config, rm
     esp_err_t ret = ESP_OK;
     ESP_GOTO_ON_FALSE(config && ret_encoder, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
     ESP_GOTO_ON_FALSE(config->led_model < LED_MODEL_INVALID, ESP_ERR_INVALID_ARG, err, TAG, "invalid led model");
-
     // Create a temporary config with the same base values
     led_strip_encoder_config_t timing_config = *config;
+    const bool has_encoder_timings = config->timings.t0h || config->timings.t0l || config->timings.t1h || config->timings.t1l || config->timings.reset;
 
-    // Set the timing values based on LED model
-    if (config->led_model == LED_MODEL_SK6812) {
-        timing_config.timings = (led_strip_encoder_timings_t) {
-            .t0h = 300,  // 0.3us = 300ns
-            .t0l = 900,  // 0.9us = 900ns
-            .t1h = 600,  // 0.6us = 600ns
-            .t1l = 600,  // 0.6us = 600ns
-            .reset = 280 // 280us
-        };
-    } else if (config->led_model == LED_MODEL_WS2812) {
-        timing_config.timings = (led_strip_encoder_timings_t) {
-            .t0h = 300,  // 0.3us = 300ns
-            .t0l = 900,  // 0.9us = 900ns
-            .t1h = 900,  // 0.9us = 900ns
-            .t1l = 300,  // 0.3us = 300ns
-            .reset = 280 // 280us
-        };
-    } else if (config->led_model == LED_MODEL_WS2811) {
-        timing_config.timings = (led_strip_encoder_timings_t) {
-            .t0h = 500,   // 0.5us = 500ns
-            .t0l = 2000,  // 2.0us = 2000ns
-            .t1h = 1200,  // 1.2us = 1200ns
-            .t1l = 1300,  // 1.3us = 1300ns
-            .reset = 50   // 50us
-        };
-    } else {
-        return ESP_ERR_INVALID_ARG;
+    if (!has_encoder_timings) {
+        // Set the timing values based on LED model
+        if (config->led_model == LED_MODEL_SK6812) {
+            timing_config.timings = (led_strip_encoder_timings_t) {
+                .t0h = 300,  // 0.3us = 300ns
+                .t0l = 900,  // 0.9us = 900ns
+                .t1h = 600,  // 0.6us = 600ns
+                .t1l = 600,  // 0.6us = 600ns
+                .reset = 280 // 280us
+            };
+        } else if (config->led_model == LED_MODEL_WS2812) {
+            timing_config.timings = (led_strip_encoder_timings_t) {
+                .t0h = 300,  // 0.3us = 300ns
+                .t0l = 900,  // 0.9us = 900ns
+                .t1h = 900,  // 0.9us = 900ns
+                .t1l = 300,  // 0.3us = 300ns
+                .reset = 280 // 280us
+            };
+        } else if (config->led_model == LED_MODEL_WS2811) {
+            timing_config.timings = (led_strip_encoder_timings_t) {
+                .t0h = 500,   // 0.5us = 500ns
+                .t0l = 2000,  // 2.0us = 2000ns
+                .t1h = 1200,  // 1.2us = 1200ns
+                .t1l = 1300,  // 1.3us = 1300ns
+                .reset = 50   // 50us
+            };
+        } else {
+            return ESP_ERR_INVALID_ARG;
+        }
     }
+
 
     // Delegate to the timing-based encoder creation
     return rmt_new_led_strip_encoder_with_timings(&timing_config, ret_encoder);
