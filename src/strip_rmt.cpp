@@ -17,13 +17,8 @@ static const char *TAG = "strip_rmt";
 // 10MHz resolution, 1 tick = 0.1us (led strip needs a high resolution)
 #define LED_STRIP_RMT_RES_HZ (10 * 1000 * 1000)
 
-led_strip_handle_t configure_led_with_timings(int pin, uint32_t led_count, bool is_rgbw, uint32_t t0h, uint32_t t0l, uint32_t t1h, uint32_t t1l, uint32_t reset, dma_mode_t dma_config)
+led_strip_handle_t configure_led_with_timings(int pin, uint32_t led_count, bool is_rgbw, uint32_t t0h, uint32_t t0l, uint32_t t1h, uint32_t t1l, uint32_t reset, bool with_dma)
 {
-    bool use_dma = false;
-    if (dma_config == DMA_ENABLED)
-    {
-        use_dma = true;
-    }
 
     led_strip_encoder_timings_t timings = {
         .t0h = t0h,
@@ -33,7 +28,7 @@ led_strip_handle_t configure_led_with_timings(int pin, uint32_t led_count, bool 
         .reset = reset};
 
     // is always going to fail, so it's disabled for now.
-    uint32_t memory_block_symbols = use_dma ? 1024 : 0;
+    uint32_t memory_block_symbols = with_dma ? 1024 : 0;
     led_color_component_format_t color_component_format =
         is_rgbw ? LED_STRIP_COLOR_COMPONENT_FMT_RGBW : LED_STRIP_COLOR_COMPONENT_FMT_RGB;
 
@@ -66,15 +61,10 @@ led_strip_handle_t configure_led_with_timings(int pin, uint32_t led_count, bool 
     return nullptr;
 }
 
-led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_model, bool is_rgbw, dma_mode_t dma_config)
+led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_model, bool is_rgbw, bool with_dma)
 {
-    bool use_dma = false;
-    if (dma_config == DMA_ENABLED)
-    {
-        use_dma = true;
-    }
     // is always going to fail, so it's disabled for now.
-    uint32_t memory_block_symbols = use_dma ? 1024 : 0;
+    uint32_t memory_block_symbols = with_dma ? 1024 : 0;
     led_color_component_format_t color_component_format =
         is_rgbw ? LED_STRIP_COLOR_COMPONENT_FMT_RGBW : LED_STRIP_COLOR_COMPONENT_FMT_RGB;
 
@@ -108,10 +98,11 @@ led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_mo
 class RmtStrip : public IRmtStrip
 {
 public:
-    RmtStrip(int pin, uint32_t led_count, bool is_rgbw, uint32_t th0, uint32_t tl0, uint32_t th1, uint32_t tl1, uint32_t reset, dma_mode_t dma_config = DMA_AUTO)
-        : mIsRgbw(is_rgbw)
+    RmtStrip(int pin, uint32_t led_count, bool is_rgbw, uint32_t th0, uint32_t tl0, uint32_t th1, uint32_t tl1, uint32_t reset, IRmtStrip::DmaMode dma_mode)
+        : mIsRgbw(is_rgbw), mLedCount(led_count)
     {
-        led_strip_handle_t led_strip = configure_led_with_timings(pin, led_count, is_rgbw, th0, tl0, th1, tl1, reset, dma_config);
+        bool with_dma = dma_mode == IRmtStrip::DMA_ENABLED;
+        led_strip_handle_t led_strip = configure_led_with_timings(pin, led_count, is_rgbw, th0, tl0, th1, tl1, reset, with_dma);
         mStrip = led_strip;
     }
 
@@ -166,14 +157,14 @@ public:
     }
 
     void fill(uint8_t red, uint8_t green, uint8_t blue) override {
-        for (int i = 0; i < LED_STRIP_LED_COUNT; i++)
+        for (int i = 0; i < mLedCount; i++)
         {
             setPixel(i, red, green, blue);
         }
     }
 
     void fillRGBW(uint8_t red, uint8_t green, uint8_t blue, uint8_t white) override {
-        for (int i = 0; i < LED_STRIP_LED_COUNT; i++)
+        for (int i = 0; i < mLedCount; i++)
         {
             setPixelRGBW(i, red, green, blue, white);
         }
@@ -183,10 +174,11 @@ private:
     led_strip_handle_t mStrip;
     bool mDrawIssued = false;
     bool mIsRgbw;
+    uint32_t mLedCount;
 };
 
 
-IRmtStrip *IRmtStrip::Create(int pin, uint32_t led_count, bool is_rgbw, uint32_t th0, uint32_t tl0, uint32_t th1, uint32_t tl1, uint32_t reset, dma_mode_t dma_config)
+IRmtStrip *IRmtStrip::Create(int pin, uint32_t led_count, bool is_rgbw, uint32_t th0, uint32_t tl0, uint32_t th1, uint32_t tl1, uint32_t reset, IRmtStrip::DmaMode dma_config)
 {
     return new RmtStrip(pin, led_count, is_rgbw, th0, tl0, th1, tl1, reset, dma_config);
 }

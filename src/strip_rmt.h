@@ -14,7 +14,14 @@
 class IRmtStrip
 {
 public:
-    static IRmtStrip* Create(int pin, uint32_t led_count, bool is_rgbw, uint32_t th0, uint32_t tl0, uint32_t th1, uint32_t tl1, uint32_t reset, dma_mode_t dma_config = DMA_AUTO);
+
+    enum DmaMode {
+        DMA_AUTO,  // Use DMA if available, otherwise use RMT.
+        DMA_ENABLED,
+        DMA_DISABLED,
+    };
+
+    static IRmtStrip* Create(int pin, uint32_t led_count, bool is_rgbw, uint32_t th0, uint32_t tl0, uint32_t th1, uint32_t tl1, uint32_t reset, DmaMode dma_config = DMA_AUTO);
 
     virtual ~IRmtStrip() {}
     virtual void setPixel(uint32_t index, uint8_t red, uint8_t green, uint8_t blue) = 0;

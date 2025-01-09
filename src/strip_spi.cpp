@@ -96,7 +96,8 @@ static void releaseSpiHost(spi_host_device_t spi_host)
 class SpiStripWs2812 : public ISpiStripWs2812 {
 public:
     SpiStripWs2812(int pin, uint32_t led_count, ISpiStripWs2812::SpiHostMode spi_bus_mode, ISpiStripWs2812::DmaMode dma_mode = DMA_AUTO)
-        : mIsRgbw(false)// SPI implementation currently only supports RGB
+        : mIsRgbw(false), // SPI implementation currently only supports RGB
+          mLedCount(led_count)
     {
         switch (spi_bus_mode) {
             case ISpiStripWs2812::SPI_HOST_MODE_AUTO:
@@ -161,6 +162,13 @@ public:
         return mDrawIssued;
     }
 
+    void fill(uint8_t red, uint8_t green, uint8_t blue) {
+        for (int i = 0; i < mLedCount; i++)
+        {
+            setPixel(i, red, green, blue);
+        }
+    }
+
     void clear()
     {
         ESP_ERROR_CHECK(led_strip_clear(mStrip));
@@ -168,7 +176,7 @@ public:
 
     void fill_color(uint8_t red, uint8_t green, uint8_t blue)
     {
-        for (int i = 0; i < LED_STRIP_LED_COUNT; i++)
+        for (int i = 0; i < mLedCount; i++)
         {
             setPixel(i, red, green, blue);
         }
@@ -179,13 +187,10 @@ private:
     led_strip_handle_t mStrip;
     bool mDrawIssued = false;
     bool mIsRgbw;
+    uint32_t mLedCount = 0;
 
 };
 
-ISpiStripWs2812* Create(
-    int pin, uint32_t led_count,
-    ISpiStripWs2812::SpiHostMode spi_bus,
-    ISpiStripWs2812::DmaMode dma_mode)
-{
+ISpiStripWs2812* ISpiStripWs2812::Create(int pin, uint32_t led_count, ISpiStripWs2812::SpiHostMode spi_bus, ISpiStripWs2812::DmaMode dma_mode) {
     return new SpiStripWs2812(pin, led_count, spi_bus, dma_mode);
 }
