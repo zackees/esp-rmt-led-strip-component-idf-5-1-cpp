@@ -32,10 +32,11 @@ typedef enum {
  * @note The timings are in nanoseconds. A zero filled structure will represent no timings given.
  */
 typedef struct {
-    uint16_t t0h; /*!< High time for 0 bit, */
-    uint16_t t1h; /*!< High time for 1 bit */
-    uint16_t t0l; /*!< Low time for 0 bit */
-    uint16_t t1l; /*!< Low time for 1 bit */
+    uint32_t t0h; /*!< High time for 0 bit, */
+    uint32_t t1h; /*!< High time for 1 bit */
+    uint32_t t0l; /*!< Low time for 0 bit */
+    uint32_t t1l; /*!< Low time for 1 bit */
+    uint32_t reset; /*!< Reset time, microseconds */
 } led_strip_encoder_timings_t;
 
 
