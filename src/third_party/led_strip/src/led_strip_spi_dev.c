@@ -87,7 +87,8 @@ static esp_err_t led_strip_spi_set_pixel_rgbw(led_strip_t *strip, uint32_t index
     return ESP_OK;
 }
 
-static esp_err_t led_strip_spi_refresh(led_strip_t *strip)
+
+static esp_err_t spi_led_strip_refresh_async(led_strip_t *strip)
 {
     led_strip_spi_obj *spi_strip = __containerof(strip, led_strip_spi_obj, base);
     spi_transaction_t tx_conf;
@@ -96,22 +97,25 @@ static esp_err_t led_strip_spi_refresh(led_strip_t *strip)
     tx_conf.length = spi_strip->strip_len * spi_strip->bytes_per_pixel * SPI_BITS_PER_COLOR_BYTE;
     tx_conf.tx_buffer = spi_strip->pixel_buf;
     tx_conf.rx_buffer = NULL;
-    ESP_RETURN_ON_ERROR(spi_device_transmit(spi_strip->spi_device, &tx_conf), TAG, "transmit pixels by SPI failed");
-
+    spi_device_queue_trans(spi_strip->spi_device, &tx_conf, portMAX_DELAY);
     return ESP_OK;
-}
-
-static esp_err_t spi_led_strip_refresh_async(led_strip_t *strip)
-{
-    ESP_LOGE(TAG, "SPI does not support async refresh");
-    return led_strip_spi_refresh(strip);
 }
 
 static esp_err_t spi_led_strip_refresh_wait_done(led_strip_t *strip)
 {
-    ESP_LOGE(TAG, "SPI does not support async refresh");
+    led_strip_spi_obj *spi_strip = __containerof(strip, led_strip_spi_obj, base);
+    spi_transaction_t* tx_conf = 0;
+    spi_device_get_trans_result(spi_strip->spi_device, &tx_conf, portMAX_DELAY);
     return ESP_OK;
 }
+
+static esp_err_t led_strip_spi_refresh(led_strip_t *strip)
+{
+    ESP_RETURN_ON_ERROR(spi_led_strip_refresh_async(strip), TAG, "refresh async failed");
+    ESP_RETURN_ON_ERROR(spi_led_strip_refresh_wait_done(strip), TAG, "wait for done failed");
+    return ESP_OK;
+}
+
 
 static esp_err_t led_strip_spi_clear(led_strip_t *strip)
 {
