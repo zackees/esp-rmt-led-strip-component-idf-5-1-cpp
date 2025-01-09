@@ -122,13 +122,13 @@ public:
         mStrip = nullptr;
     }
 
-    void setPixel(uint32_t index, uint32_t red, uint32_t green, uint32_t blue) override
+    void setPixel(uint32_t index, uint8_t red, uint8_t green, uint8_t blue) override
     {
         ESP_ERROR_CHECK(mIsRgbw ? ESP_ERR_INVALID_ARG : ESP_OK);
         ESP_ERROR_CHECK(led_strip_set_pixel(mStrip, index, red, green, blue));
     }
 
-    void setPixelRGBW(uint32_t index, uint32_t red, uint32_t green, uint32_t blue, uint32_t white) override
+    void setPixelRGBW(uint32_t index, uint8_t red, uint8_t green, uint8_t blue, uint8_t white) override
     {
         ESP_ERROR_CHECK(mIsRgbw ? ESP_OK : ESP_ERR_INVALID_ARG);
         ESP_ERROR_CHECK(led_strip_set_pixel_rgbw(mStrip, index, red, green, blue, white));

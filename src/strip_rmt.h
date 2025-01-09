@@ -17,8 +17,8 @@ public:
     static IRmtStrip* Create(int pin, uint32_t led_count, bool is_rgbw, uint32_t th0, uint32_t tl0, uint32_t th1, uint32_t tl1, uint32_t reset, dma_mode_t dma_config = DMA_AUTO);
 
     virtual ~IRmtStrip() {}
-    virtual void setPixel(uint32_t index, uint32_t red, uint32_t green, uint32_t blue) = 0;
-    virtual void setPixelRGBW(uint32_t index, uint32_t red, uint32_t green, uint32_t blue, uint32_t white) = 0;
+    virtual void setPixel(uint32_t index, uint8_t red, uint8_t green, uint8_t blue) = 0;
+    virtual void setPixelRGBW(uint32_t index, uint8_t red, uint8_t green, uint8_t blue, uint8_t white) = 0;
     virtual void drawSync()
     {
         drawAsync();
