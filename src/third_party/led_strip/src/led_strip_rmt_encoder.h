@@ -13,12 +13,14 @@
 extern "C" {
 #endif
 
+
 /**
  * @brief Type of led strip encoder configuration
  */
 typedef struct {
     uint32_t resolution;   /*!< Encoder resolution, in Hz */
     led_model_t led_model; /*!< LED model */
+    led_strip_encoder_timings_t timings; /*!< Encoder timings */
 } led_strip_encoder_config_t;
 
 /**

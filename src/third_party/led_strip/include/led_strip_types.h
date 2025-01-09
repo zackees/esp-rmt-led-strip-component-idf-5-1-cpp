@@ -28,6 +28,18 @@ typedef enum {
 } led_model_t;
 
 /**
+ * @brief LED strip encoder timings.
+ * @note The timings are in nanoseconds. A zero filled structure will represent no timings given.
+ */
+typedef struct {
+    uint16_t t0h; /*!< High time for 0 bit, */
+    uint16_t t1h; /*!< High time for 1 bit */
+    uint16_t t0l; /*!< Low time for 0 bit */
+    uint16_t t1l; /*!< Low time for 1 bit */
+} led_strip_encoder_timings_t;
+
+
+/**
  * @brief LED color component format
  * @note The format is used to specify the order of color components in each pixel, also the number of color components.
  */
@@ -63,6 +75,7 @@ typedef struct {
     struct led_strip_extra_flags {
         uint32_t invert_out: 1; /*!< Invert output signal */
     } flags; /*!< Extra driver flags */
+    led_strip_encoder_timings_t timings; /*!< Encoder timings */
 } led_strip_config_t;
 
 #ifdef __cplusplus
