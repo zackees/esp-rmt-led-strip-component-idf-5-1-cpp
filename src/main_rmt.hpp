@@ -26,8 +26,20 @@
 
 static const char *TAG = "example";
 
-led_strip_handle_t configure_led_with_timings(int pin, uint32_t led_count, bool is_rgbw, uint32_t t0h, uint32_t t0l, uint32_t t1h, uint32_t t1l, uint32_t reset)
+enum dma_mode_t {
+    DMA_AUTO,
+    DMA_ENABLED,
+    DMA_DISABLED,
+};
+
+led_strip_handle_t configure_led_with_timings(int pin, uint32_t led_count, bool is_rgbw, uint32_t t0h, uint32_t t0l, uint32_t t1h, uint32_t t1l, uint32_t reset, dma_mode_t dma_config)
 {
+    bool use_dma = false;
+    if (dma_config == DMA_ENABLED)
+    {
+        use_dma = true;
+    }
+
     led_strip_encoder_timings_t timings = {
         .t0h = t0h,
         .t1h = t1h,
@@ -35,7 +47,6 @@ led_strip_handle_t configure_led_with_timings(int pin, uint32_t led_count, bool 
         .t1l = t1l,
         .reset = reset};
 
-    const bool use_dma = false; // there's a bug in the current implementation: using dma
     // is always going to fail, so it's disabled for now.
     uint32_t memory_block_symbols = use_dma ? 1024 : 0;
     led_color_component_format_t color_component_format =
@@ -70,9 +81,13 @@ led_strip_handle_t configure_led_with_timings(int pin, uint32_t led_count, bool 
     return nullptr;
 }
 
-led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_model, bool is_rgbw)
+led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_model, bool is_rgbw, dma_mode_t dma_config)
 {
-    const bool use_dma = false; // there's a bug in the current implementation: using dma
+    bool use_dma = false;
+    if (dma_config == DMA_ENABLED)
+    {
+        use_dma = true;
+    }
     // is always going to fail, so it's disabled for now.
     uint32_t memory_block_symbols = use_dma ? 1024 : 0;
     led_color_component_format_t color_component_format =
@@ -123,10 +138,10 @@ public:
 class RmtStrip : public IRmtStrip
 {
 public:
-    RmtStrip(int pin, uint32_t led_count, bool is_rgbw, uint32_t th0, uint32_t tl0, uint32_t th1, uint32_t tl1, uint32_t reset)
+    RmtStrip(int pin, uint32_t led_count, bool is_rgbw, uint32_t th0, uint32_t tl0, uint32_t th1, uint32_t tl1, uint32_t reset, dma_mode_t dma_config = DMA_AUTO)
         : mIsRgbw(is_rgbw)
     {
-        led_strip_handle_t led_strip = configure_led_with_timings(pin, led_count, is_rgbw, th0, tl0, th1, tl1, reset);
+        led_strip_handle_t led_strip = configure_led_with_timings(pin, led_count, is_rgbw, th0, tl0, th1, tl1, reset, dma_config);
         mStrip = led_strip;
     }
 

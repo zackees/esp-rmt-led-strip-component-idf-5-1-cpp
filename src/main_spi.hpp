@@ -22,7 +22,7 @@
 
 static const char *TAG = "example";
 
-led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_model)
+led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_model, spi_host_device_t spi_bus, bool with_dma)
 {
     // LED strip general initialization, according to your led board design
     led_strip_config_t strip_config = {
@@ -46,9 +46,9 @@ led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_mo
     // LED strip backend configuration: SPI
     led_strip_spi_config_t spi_config = {
         .clk_src = SPI_CLK_SRC_DEFAULT, // different clock source can lead to different power consumption
-        .spi_bus = SPI2_HOST,           // SPI bus ID
+        .spi_bus = spi_bus,           // SPI bus ID
         .flags = {
-            .with_dma = true, // Using DMA can improve performance and help drive more LEDs
+            .with_dma = with_dma, // Using DMA can improve performance and help drive more LEDs
         }
     };
 
@@ -61,7 +61,7 @@ led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_mo
 
 void app_main(void)
 {
-    led_strip_handle_t led_strip = configure_led(LED_STRIP_GPIO_PIN, LED_STRIP_LED_COUNT, LED_MODEL_WS2812);
+    led_strip_handle_t led_strip = configure_led(LED_STRIP_GPIO_PIN, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, SPI2_HOST, true);
     bool led_on_off = false;
 
     ESP_LOGI(TAG, "Start blinking LED strip");
