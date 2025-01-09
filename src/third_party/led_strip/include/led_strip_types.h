@@ -79,6 +79,12 @@ typedef struct {
     led_strip_encoder_timings_t timings; /*!< Encoder timings */
 } led_strip_config_t;
 
+enum dma_mode_t {
+    DMA_AUTO,
+    DMA_ENABLED,
+    DMA_DISABLED,
+};
+
 #ifdef __cplusplus
 }
 #endif

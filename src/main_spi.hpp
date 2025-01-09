@@ -22,8 +22,9 @@
 
 static const char *TAG = "example";
 
-led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_model, spi_host_device_t spi_bus, bool with_dma)
+led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_model, spi_host_device_t spi_bus, dma_mode_t dma_mode)
 {
+    bool with_dma = dma_mode == DMA_ENABLED || dma_mode == DMA_AUTO;
     // LED strip general initialization, according to your led board design
     led_strip_config_t strip_config = {
         .strip_gpio_num = pin, // The GPIO that connected to the LED strip's data line
@@ -77,12 +78,80 @@ public:
 };
 
 class SpiStrip : public ISpiStrip {
+public:
+    SpiStrip(int pin, uint32_t led_count, led_model_t led_model, spi_host_device_t spi_bus, dma_mode_t dma_mode = DMA_AUTO)
+        : mIsRgbw(false) // SPI implementation currently only supports RGB
+    {
+        led_strip_handle_t led_strip = configure_led(pin, led_count, led_model, spi_bus, dma_mode);
+        mStrip = led_strip;
+    }
+
+    ~SpiStrip() override
+    {
+        waitDone();
+        led_strip_del(mStrip);
+        mStrip = nullptr;
+    }
+
+    esp_err_t setPixel(uint32_t index, uint32_t red, uint32_t green, uint32_t blue) override
+    {
+        ESP_ERROR_CHECK(led_strip_set_pixel(mStrip, index, red, green, blue));
+        return ESP_OK;
+    }
+
+    esp_err_t setPixelRGBW(uint32_t index, uint32_t red, uint32_t green, uint32_t blue, uint32_t white) override
+    {
+        return ESP_ERR_NOT_SUPPORTED; // SPI implementation doesn't support RGBW
+    }
+
+    void drawAsync() override
+    {
+        if (mDrawIssued)
+        {
+            waitDone();
+        }
+        ESP_ERROR_CHECK(led_strip_refresh_async(mStrip));
+        mDrawIssued = true;
+    }
+
+    void waitDone() override
+    {
+        if (!mDrawIssued)
+        {
+            return;
+        }
+        ESP_ERROR_CHECK(led_strip_refresh_wait_done(mStrip));
+        mDrawIssued = false;
+    }
+
+    bool isDrawing() override
+    {
+        return mDrawIssued;
+    }
+
+    void clear()
+    {
+        ESP_ERROR_CHECK(led_strip_clear(mStrip));
+    }
+
+    void fill_color(uint32_t red, uint32_t green, uint32_t blue)
+    {
+        for (int i = 0; i < LED_STRIP_LED_COUNT; i++)
+        {
+            setPixel(i, red, green, blue);
+        }
+    }
+
+private:
+    led_strip_handle_t mStrip;
+    bool mDrawIssued = false;
+    bool mIsRgbw;
 
 };
 
 void app_main(void)
 {
-    led_strip_handle_t led_strip = configure_led(LED_STRIP_GPIO_PIN, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, SPI2_HOST, true);
+    led_strip_handle_t led_strip = configure_led(LED_STRIP_GPIO_PIN, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, SPI2_HOST, DMA_AUTO);
     bool led_on_off = false;
 
     ESP_LOGI(TAG, "Start blinking LED strip");

@@ -26,11 +26,6 @@
 
 static const char *TAG = "example";
 
-enum dma_mode_t {
-    DMA_AUTO,
-    DMA_ENABLED,
-    DMA_DISABLED,
-};
 
 led_strip_handle_t configure_led_with_timings(int pin, uint32_t led_count, bool is_rgbw, uint32_t t0h, uint32_t t0l, uint32_t t1h, uint32_t t1l, uint32_t reset, dma_mode_t dma_config)
 {
