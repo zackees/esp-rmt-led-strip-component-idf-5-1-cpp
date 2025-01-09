@@ -59,6 +59,27 @@ led_strip_handle_t configure_led(int pin, uint32_t led_count, led_model_t led_mo
     return led_strip;
 }
 
+
+class ISpiStrip
+{
+public:
+    virtual ~ISpiStrip() {}
+    virtual esp_err_t setPixel(uint32_t index, uint32_t red, uint32_t green, uint32_t blue) = 0;
+    virtual esp_err_t setPixelRGBW(uint32_t index, uint32_t red, uint32_t green, uint32_t blue, uint32_t white) = 0;
+    virtual void drawSync()
+    {
+        drawAsync();
+        waitDone();
+    }
+    virtual void drawAsync() = 0;
+    virtual void waitDone() = 0;
+    virtual bool isDrawing() = 0;
+};
+
+class SpiStrip : public ISpiStrip {
+
+};
+
 void app_main(void)
 {
     led_strip_handle_t led_strip = configure_led(LED_STRIP_GPIO_PIN, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, SPI2_HOST, true);
