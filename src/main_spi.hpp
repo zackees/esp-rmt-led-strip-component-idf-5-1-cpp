@@ -79,7 +79,7 @@ public:
 
 class SpiStrip : public ISpiStrip {
 public:
-    SpiStrip(int pin, uint32_t led_count, led_model_t led_model, spi_host_device_t spi_bus, dma_mode_t dma_mode = DMA_AUTO)
+    SpiStrip(int pin, uint32_t led_count, led_model_t led_model, spi_host_device_t spi_bus = SPI2_HOST, dma_mode_t dma_mode = DMA_AUTO)
         : mIsRgbw(false) // SPI implementation currently only supports RGB
     {
         led_strip_handle_t led_strip = configure_led(pin, led_count, led_model, spi_bus, dma_mode);
@@ -151,24 +151,27 @@ private:
 
 void app_main(void)
 {
-    led_strip_handle_t led_strip = configure_led(LED_STRIP_GPIO_PIN, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, SPI2_HOST, DMA_AUTO);
+    // led_strip_handle_t led_strip = configure_led(LED_STRIP_GPIO_PIN, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, SPI2_HOST, DMA_AUTO);
+    // SpiStrip *led_strip = new SpiStrip(LED_STRIP_GPIO_PIN, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, SPI2_HOST);
+    SpiStrip led_strip(LED_STRIP_GPIO_PIN, LED_STRIP_LED_COUNT, LED_MODEL_WS2812, SPI2_HOST);
     bool led_on_off = false;
 
     ESP_LOGI(TAG, "Start blinking LED strip");
     while (1) {
         if (led_on_off) {
             /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for each color */
-            for (int i = 0; i < LED_STRIP_LED_COUNT; i++) {
-                ESP_ERROR_CHECK(led_strip_set_pixel(led_strip, i, 5, 5, 5));
-            }
+            led_strip.fill_color(5,5,5);
             /* Refresh the strip to send data */
-            ESP_ERROR_CHECK(led_strip_refresh(led_strip));
+            // ESP_ERROR_CHECK(led_strip_refresh(led_strip));
+
             ESP_LOGI(TAG, "LED ON!");
         } else {
             /* Set all LED off to clear all pixels */
-            ESP_ERROR_CHECK(led_strip_clear(led_strip));
+            // ESP_ERROR_CHECK(led_strip_clear(led_strip));
+            led_strip.fill_color(0,0,0);
             ESP_LOGI(TAG, "LED OFF!");
         }
+        led_strip.drawSync();
 
         led_on_off = !led_on_off;
         vTaskDelay(pdMS_TO_TICKS(500));
